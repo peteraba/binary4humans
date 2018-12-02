@@ -1,7 +1,6 @@
 package bfh
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -49,29 +48,19 @@ func init() {
 
 // Encode encodes binary data into a human readable string
 func Encode(b []byte) (string, error) {
-	var (
-		buf bytes.Buffer
-		err error
-	)
-
 	if b == nil {
 		return "", errors.New(errMsgBinaryDataMustNotBeNil)
 	}
 
-	b, err = padBytes(&buf, b)
-	if err != nil {
-		return "", err
-	}
+	result := newNormalResult(len(b))
 
-	return encode(b, &buf)
+	result = encode(b, result, 2)
+
+	return string(result), nil
 }
 
 // EncodeStrict encodes binary data with a length dividable by 5 into a simplified human readable string
 func EncodeStrict(b []byte) (string, error) {
-	var (
-		buf bytes.Buffer
-	)
-
 	if b == nil {
 		return "", errors.New(errMsgBinaryDataMustNotBeNil)
 	}
@@ -80,60 +69,88 @@ func EncodeStrict(b []byte) (string, error) {
 		return "", errors.New(errMsgStrictMustBeDividableBy5)
 	}
 
-	return encode(b, &buf)
+	result := newStrictEncodeResult(len(b))
+
+	result = encode(b, result, 0)
+
+	return string(result), nil
 }
 
-func encode(b []byte, buf *bytes.Buffer) (string, error) {
+// newNormalResult will create a byte slice and fill it with dashes and zeros as required, plus setting the padding byte
+func newNormalResult(byteLength int) []byte {
+	b32padding := (5 - byteLength%5) % 5
+	b32Length := (byteLength+b32padding)*2 + 1
+
+	if byteLength == 0 {
+		b32Length++
+	}
+
+	s1 := make([]byte, b32Length)
+	for i := 0; i < b32Length; i++ {
+		s1[i] = byte('0')
+	}
+	for i := 6; i < b32Length; i += 5 {
+		s1[i] = byte('-')
+	}
+
+	s1[0] = byte(b32padding + '0')
+	s1[1] = byte('-')
+
+	return s1
+}
+
+// newStrictEncodeResult will create a byte slice and fill it with dashes and zeros as required
+func newStrictEncodeResult(byteLength int) []byte {
+	b32Length := (byteLength)*2 - 1
+
+	if byteLength == 0 {
+		b32Length++
+	}
+
+	s1 := make([]byte, b32Length)
+	for i := 0; i < b32Length; i++ {
+		s1[i] = byte('0')
+	}
+	for i := 4; i < b32Length; i += 5 {
+		s1[i] = byte('-')
+	}
+
+	return s1
+}
+
+func encode(b, result []byte, offset int) []byte {
 	var (
-		readBits = 0
-		maxBits  = len(b) * 8
-		err      error
+		readCount = 0
+		maxCount  = len(b)*8/5 + 1
+		f         byte
+		idx       int
 	)
 
-	for maxBits > readBits {
-		f := readByte(b, readBits)
+	for maxCount > readCount {
+		f = readByte(b, readCount*5)
 
-		_, err = fmt.Fprintf(buf, "%s", digits[f:f+1])
-		if err != nil {
-			return "", err
+		idx = readCount + offset + (readCount / 4)
+		if idx >= len(result) {
+			break
 		}
 
-		readBits += 5
+		result[idx] = digits[f]
 
-		if readBits%20 != 0 || readBits >= maxBits {
-			continue
-		}
-
-		_, err = fmt.Fprint(buf, "-")
-		if err != nil {
-			return "", err
-		}
+		readCount++
 	}
 
-	return buf.String(), nil
-}
-
-func padBytes(buf *bytes.Buffer, b []byte) ([]byte, error) {
-	pad := (5 - len(b)%5) % 5
-	_, err := fmt.Fprintf(buf, "%d-", pad)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(b)%5 != 0 {
-		c := make([]byte, len(b)+pad)
-		copy(c, b)
-		return c, nil
-	}
-
-	return b, nil
+	return result
 }
 
 func readByte(b []byte, readBits int) byte {
 	m := uint8(readBits % 8)
+	l := readBits / 8
 
 	// we need to mask out bits we've read before
-	f := b[readBits/8] & encodeMasks[m]
+	if l >= len(b) {
+		return 0
+	}
+	f := b[l] & encodeMasks[m]
 
 	// if we're reading from the first half of the byte than we have it easy...
 	// otherwise we need to push some bits towards larger value to leave place
@@ -147,8 +164,8 @@ func readByte(b []byte, readBits int) byte {
 	// next byte may not exist
 	// otherwise we'll need push the first bits to the end
 	var s byte
-	if len(b) > readBits/8+1 {
-		s = b[readBits/8+1] >> (11 - m)
+	if len(b) > l+1 {
+		s = b[l+1] >> (11 - m)
 	}
 
 	return f | s
@@ -184,12 +201,12 @@ func Decode(str string) ([]byte, error) {
 
 // DecodeStrict decodes a string into binary data without using any padding
 func DecodeStrict(str string) ([]byte, error) {
-	if !IsStrictBfh(str) {
-		return nil, errors.New(errMsgStrictInvalid)
-	}
-
 	// dashes are not needed, they only help readability
 	str = strings.Replace(str, "-", "", -1)
+
+	if len(str)%4 != 0 {
+		return nil, errors.New(errMsgStrictInvalid)
+	}
 
 	return decode(str)
 }
