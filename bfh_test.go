@@ -725,140 +725,206 @@ func Test_IsStrictBfh(t *testing.T) {
 	})
 }
 
-var encodeResult string
+var (
+	data = []byte{
+		133, 237, 158, 181, 220, 197, 196, 29, 137, 199,
+		57, 60, 172, 6, 70, 72, 184, 186, 18, 169,
+		127, 57, 94, 20, 222, 115, 22, 237, 37, 66,
+		98, 242, 148, 29, 200, 192, 166, 73, 26, 153,
 
-// from fib_test.go
-func Benchmark_Encode_23(b *testing.B) {
-	data := make([]byte, 23)
+		142, 217, 24, 147, 47, 184, 130, 55, 122, 177,
+		195, 40, 6, 102, 228, 221, 252, 97, 64, 118,
+		208, 235, 117, 219, 120, 86, 119, 121, 41, 164,
+		249, 39, 91, 72, 133, 143, 157, 132, 0, 99,
 
-	_, err := rand.Read(data)
-	require.NoError(b, err)
+		109, 183, 234, 164, 20, 6, 63, 156, 15, 52,
+		117, 213, 115, 208, 106, 39, 18, 248, 157, 181,
+		93, 65, 149, 25, 140, 110, 139, 189, 105, 64,
+		196, 62, 6, 63, 194, 122, 168, 63, 123, 87,
 
+		207, 204, 2, 143, 143, 156, 23, 197, 216, 75,
+		231, 61, 104, 203, 24, 199, 71, 13, 243, 97,
+		62, 162, 99, 218, 240, 114, 207, 58, 198, 216,
+		213, 58, 96, 12, 67, 78, 109, 13, 101, 222,
+
+		216, 83, 37, 19, 77, 119, 214, 95, 158, 127,
+		125, 67, 38, 106, 254, 9, 38, 108, 186, 125,
+		59, 187, 96, 203, 54, 107, 197, 250, 135, 90,
+		175, 159, 41, 78, 65, 71, 190, 244, 154, 198,
+
+		210, 107, 17, 6, 91, 107, 68, 195, 18, 222,
+		212, 220, 4, 55, 196, 157, 193, 58, 59, 182,
+		153, 101, 7, 13, 233, 124, 31, 11, 161, 191,
+		190, 236, 128, 176, 165, 83, 93, 170, 195, 236,
+	}
+	encodedData240 = "gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y-ecbe-t9a2-cbs9-87e8-r2k4-j6ms-hvch-h4sf-q213-eynh-rcm0-csq4-vqy6-2g3p-t3nq-bpvr-asvq-jad4-z4kn-pj45-hyer-8033-dpvy-n90m-0rzs-r3sm-eqaq-7m3a-4w9f-h7dn-bn0s-a6cc-dt5v-tta0-rgz0-cfy2-fam3-yytq-sz60-53wf-kgbw-bp2b-wwyp-hjrr-rx3g-vwv1-7th6-7pqg-eb7k-nhpr-tmx6-0323-9spg-tsey-v19j-a4td-ezb5-z7kz-fn1j-ctqy-14k6-sekx-7exp-1jsp-df2z-n1tt-nyfj-jkj1-8yzf-96p6-t9nh-21jv-dd2c-64py-tke0-8dy4-kq0k-mexp-k5jg-e3f9-fgfg-q8dz-qvp8-1c55-adet-ngzc"
+	encodedData238 = "2-gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y-ecbe-t9a2-cbs9-87e8-r2k4-j6ms-hvch-h4sf-q213-eynh-rcm0-csq4-vqy6-2g3p-t3nq-bpvr-asvq-jad4-z4kn-pj45-hyer-8033-dpvy-n90m-0rzs-r3sm-eqaq-7m3a-4w9f-h7dn-bn0s-a6cc-dt5v-tta0-rgz0-cfy2-fam3-yytq-sz60-53wf-kgbw-bp2b-wwyp-hjrr-rx3g-vwv1-7th6-7pqg-eb7k-nhpr-tmx6-0323-9spg-tsey-v19j-a4td-ezb5-z7kz-fn1j-ctqy-14k6-sekx-7exp-1jsp-df2z-n1tt-nyfj-jkj1-8yzf-96p6-t9nh-21jv-dd2c-64py-tke0-8dy4-kq0k-mexp-k5jg-e3f9-fgfg-q8dz-qvp8-1c55-adet-m000"
+	encodedData25  = "gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y"
+	encodedData23  = "2-gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w000"
+	decodedResult  []byte
+	encodeResult   string
+)
+
+func Benchmark_BfhEncode_23(b *testing.B) {
 	var str string
 
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		str, _ = Encode(data)
+		str, _ = Encode(data[:23])
 	}
 
 	encodeResult = str
 }
 
-// from fib_test.go
-func Benchmark_Base32_23(b *testing.B) {
-	data := make([]byte, 23)
-
-	_, err := rand.Read(data)
-	require.NoError(b, err)
-
+func Benchmark_BfhEncodeStrict_25(b *testing.B) {
 	var str string
 
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data)
+		str, _ = EncodeStrict(data[:25])
 	}
 
 	encodeResult = str
 }
 
-// from fib_test.go
-func Benchmark_EncodeStrict_20(b *testing.B) {
-	data := make([]byte, 20)
-
-	_, err := rand.Read(data)
-	require.NoError(b, err)
-
+func Benchmark_BfhEncode_238(b *testing.B) {
 	var str string
 
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		str, _ = Encode(data)
+		str, _ = Encode(data[:238])
 	}
 
 	encodeResult = str
 }
 
-// from fib_test.go
-func Benchmark_Base32Strict_20(b *testing.B) {
-	data := make([]byte, 20)
-
-	_, err := rand.Read(data)
-	require.NoError(b, err)
-
+func Benchmark_BfhEncodeStrict_240(b *testing.B) {
 	var str string
 
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data)
+		str, _ = EncodeStrict(data)
 	}
 
 	encodeResult = str
 }
 
-// from fib_test.go
-func Benchmark_Encode_238(b *testing.B) {
-	data := make([]byte, 238)
-
-	_, err := rand.Read(data)
-	require.NoError(b, err)
-
+func Benchmark_Base32Encode_23(b *testing.B) {
 	var str string
 
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		str, _ = Encode(data)
+		str = base32.StdEncoding.EncodeToString(data[:23])
 	}
 
 	encodeResult = str
 }
 
-// from fib_test.go
-func Benchmark_Base32_238(b *testing.B) {
-	data := make([]byte, 238)
-
-	_, err := rand.Read(data)
-	require.NoError(b, err)
-
+func Benchmark_Base32Encode_20(b *testing.B) {
 	var str string
 
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data)
+		str = base32.StdEncoding.EncodeToString(data[:20])
 	}
 
 	encodeResult = str
 }
 
-// from fib_test.go
-func Benchmark_EncodeStrict_240(b *testing.B) {
-	data := make([]byte, 240)
-
-	_, err := rand.Read(data)
-	require.NoError(b, err)
-
+func Benchmark_Base32Encode_238(b *testing.B) {
 	var str string
 
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		str, _ = Encode(data)
+		str = base32.StdEncoding.EncodeToString(data[:238])
 	}
 
 	encodeResult = str
 }
 
-// from fib_test.go
-func Benchmark_Base32Strict_240(b *testing.B) {
-	data := make([]byte, 240)
-
-	_, err := rand.Read(data)
-	require.NoError(b, err)
-
+func Benchmark_Base32Encode_240(b *testing.B) {
 	var str string
 
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data)
+		str = base32.StdEncoding.EncodeToString(data[:240])
 	}
 
 	encodeResult = str
+}
+
+func Benchmark_BfhDecode_23(b *testing.B) {
+	var decodedData []byte
+
+	for n := 0; n < b.N; n++ {
+		decodedData, _ = Decode(encodedData23)
+	}
+
+	decodedResult = decodedData
+}
+
+func Benchmark_BfhDecodeStrict_25(b *testing.B) {
+	var decodedData []byte
+
+	for n := 0; n < b.N; n++ {
+		decodedData, _ = DecodeStrict(encodedData25)
+	}
+
+	decodedResult = decodedData
+}
+
+func Benchmark_BfhDecode_238(b *testing.B) {
+	var decodedData []byte
+
+	for n := 0; n < b.N; n++ {
+		decodedData, _ = Decode(encodedData238)
+	}
+
+	decodedResult = decodedData
+}
+
+func Benchmark_BfhDecodeStrict_240(b *testing.B) {
+	var decodedData []byte
+
+	for n := 0; n < b.N; n++ {
+		decodedData, _ = DecodeStrict(encodedData240)
+	}
+
+	decodedResult = decodedData
+}
+
+func Benchmark_Base32Decode_23(b *testing.B) {
+	var decodedData []byte
+	var str = base32.StdEncoding.EncodeToString(data[:23])
+
+	for n := 0; n < b.N; n++ {
+		decodedData, _ = base32.StdEncoding.DecodeString(str)
+	}
+
+	decodedResult = decodedData
+}
+
+func Benchmark_Base32Decode_20(b *testing.B) {
+	var decodedData []byte
+	var str = base32.StdEncoding.EncodeToString(data[:20])
+
+	for n := 0; n < b.N; n++ {
+		decodedData, _ = base32.StdEncoding.DecodeString(str)
+	}
+
+	decodedResult = decodedData
+}
+
+func Benchmark_Base32Decode_238(b *testing.B) {
+	var decodedData []byte
+	var str = base32.StdEncoding.EncodeToString(data[:238])
+
+	for n := 0; n < b.N; n++ {
+		decodedData, _ = base32.StdEncoding.DecodeString(str)
+	}
+
+	decodedResult = decodedData
+}
+
+func Benchmark_Base32Decode_240(b *testing.B) {
+	var decodedData []byte
+	var str = base32.StdEncoding.EncodeToString(data[:240])
+
+	for n := 0; n < b.N; n++ {
+		decodedData, _ = base32.StdEncoding.DecodeString(str)
+	}
+
+	decodedResult = decodedData
 }

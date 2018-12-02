@@ -140,11 +140,31 @@ Extra
 Benchmarks
 ----------
 
+As you can see the performance leaves a lot to be desired at the moment. Improvements are planned but not promised. Pull requests are welcome!
+
 ```
-Benchmark_Encode-8         	   50000	     37793 ns/op
-Benchmark_Base32-8         	 3000000	       521 ns/op
-Benchmark_EncodeStrict-8   	   50000	     37873 ns/op
-Benchmark_Base32Strict-8   	 3000000	       511 ns/op
+➤ go test -bench=. -cpu=1                  🡑 ✹   master 965ee68 "Add benchmarks"
+goos: linux
+goarch: amd64
+pkg: github.com/peteraba/binary4humans
+Benchmark_BfhEncode_23        	  300000	      4655 ns/op
+Benchmark_BfhEncodeStrict_25  	  300000	      4428 ns/op
+Benchmark_BfhEncode_238       	   30000	     41659 ns/op
+Benchmark_BfhEncodeStrict_240 	   30000	     42284 ns/op
+Benchmark_Base32Encode_23     	10000000	       117 ns/op
+Benchmark_Base32Encode_20     	20000000	       101 ns/op
+Benchmark_Base32Encode_238    	 2000000	       605 ns/op
+Benchmark_Base32Encode_240    	 2000000	       605 ns/op
+Benchmark_BfhDecode_23        	 1000000	      1004 ns/op
+Benchmark_BfhDecodeStrict_25  	 1000000	      2050 ns/op
+Benchmark_BfhDecode_238       	  200000	      9861 ns/op
+Benchmark_BfhDecodeStrict_240 	  100000	     20419 ns/op
+Benchmark_Base32Decode_23     	 5000000	       279 ns/op
+Benchmark_Base32Decode_20     	10000000	       203 ns/op
+Benchmark_Base32Decode_238    	 1000000	      2042 ns/op
+Benchmark_Base32Decode_240    	 1000000	      2056 ns/op
+PASS
+ok  	github.com/peteraba/binary4humans	28.796s
 ```
 
 TODO
