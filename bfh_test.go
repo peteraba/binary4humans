@@ -47,12 +47,12 @@ func Test_Encode(t *testing.T) {
 				ExpectedResult: "0-zzzz-zzzz",
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "6 bytes long 0xff",
 				Bytes:          []byte{255, 255, 255, 255, 255, 255},
 				ExpectedResult: "4-zzzz-zzzz-zw00-0000",
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "4 bytes long 0xff",
 				Bytes:          []byte{255, 255, 255, 255},
 				ExpectedResult: "1-zzzz-zzr0",
 			},
@@ -239,12 +239,12 @@ func Test_Decode(t *testing.T) {
 				ExpectedResult: []byte{255, 255, 255, 255, 255},
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "6 bytes long 0xff",
 				String:         "4-zzzz-zzzz-zw00-0000",
 				ExpectedResult: []byte{255, 255, 255, 255, 255, 255},
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "4 bytes long 0xff",
 				String:         "1-zzzz-zzr0",
 				ExpectedResult: []byte{255, 255, 255, 255},
 			},
@@ -326,7 +326,6 @@ func Test_IsWellFormatted(t *testing.T) {
 			String         string
 			ExpectedResult bool
 		}{
-			// alternative empty is not well formatted but acceptable
 			{
 				Name:           "empty",
 				String:         "0-",
@@ -358,12 +357,12 @@ func Test_IsWellFormatted(t *testing.T) {
 				ExpectedResult: true,
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "6 bytes long 0xff",
 				String:         "4-zzzz-zzzz-zw00-0000",
 				ExpectedResult: true,
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "4 bytes long 0xff",
 				String:         "1-zzzz-zzr0",
 				ExpectedResult: true,
 			},
@@ -396,6 +395,21 @@ func Test_IsWellFormatted(t *testing.T) {
 				Name:           "different dash positions",
 				String:         "4-zwg-ae0-7x2-400-00-00",
 				ExpectedResult: false,
+			},
+			{
+				Name:           "fishy ending",
+				String:         "1-zwga-e07x-2400-00a0",
+				ExpectedResult: false,
+			},
+			{
+				Name:           "fishy ending",
+				String:         "4-zwga-e07x-24a0-0000",
+				ExpectedResult: false,
+			},
+			{
+				Name:           "random failed before #1",
+				String:         "3-1sfc-xrn8-dqek-dqxt-9he2-f3rf-5nj8-29ya-zyj1-9wfj-fppx-maa6-x75g-5jnb-1azg-0000",
+				ExpectedResult: true,
 			},
 		}
 
@@ -443,7 +457,7 @@ func Test_IsWellFormatted(t *testing.T) {
 
 				isValid := IsWellFormattedBfh(encoded)
 
-				assert.True(t, isValid)
+				assert.True(t, isValid, fmt.Sprintf("Failing value: %s", encoded))
 			})
 		}
 	})
@@ -487,12 +501,12 @@ func Test_IsAcceptable(t *testing.T) {
 				ExpectedResult: true,
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "6 bytes long 0xff",
 				String:         "4-zzzz-zzzz-zw00-0000",
 				ExpectedResult: true,
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "4 bytes long 0xff",
 				String:         "1-zzzz-zzr0",
 				ExpectedResult: true,
 			},
@@ -572,7 +586,7 @@ func Test_IsAcceptable(t *testing.T) {
 
 				isValid := IsAcceptableBfh(encoded)
 
-				assert.True(t, isValid)
+				assert.True(t, isValid, fmt.Sprintf("Failing value: %s", encoded))
 			})
 		}
 	})
@@ -616,12 +630,12 @@ func Test_IsStrictBfh(t *testing.T) {
 				ExpectedResult: true,
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "6 bytes long 0xff",
 				String:         "zzzz-zzzz-zw00-0000",
 				ExpectedResult: true,
 			},
 			{
-				Name:           "non-mod5 slice length of 0xff",
+				Name:           "4 bytes long 0xff",
 				String:         "zzzz-zzr0",
 				ExpectedResult: true,
 			},
@@ -692,7 +706,7 @@ func Test_IsStrictBfh(t *testing.T) {
 
 				isValid := IsStrictBfh(encoded)
 
-				assert.True(t, isValid)
+				assert.True(t, isValid, fmt.Sprintf("Failing value: %s", encoded))
 			})
 		}
 	})
