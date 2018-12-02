@@ -1,0 +1,31 @@
+checks:
+  go: true
+
+build:
+  environment:
+    go: 'go1.9'
+
+  nodes:
+    tests-with-coverage:
+      tests:
+        override:
+          -
+            command: go test -coverprofile=cover.out
+            coverage:
+              file: 'cover.out'
+              format: 'go-cc'
+
+    analysis:
+      tests:
+        before:
+          - go get -u github.com/alecthomas/gometalinter
+          - gometalinter --install
+        override:
+          - go-scrutinizer-run
+          - govet-run
+          - golint-run
+          -
+            command: gometalinter ./... --checkstyle > result.xml
+            analysis:
+              file: 'result.xml'
+              format: 'general-checkstyle'
