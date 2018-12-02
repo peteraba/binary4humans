@@ -39,8 +39,20 @@ will still decode to an empty byte array.
 Example
 -------
 
-*Binary data:* `[167, 13]` = `[10100111, 00001101]`
+### Example 1
+
+*Binary data:* `[167, 13]` = `[10100111, 00001101]`  
+
 *Encoded string:* "3-mw6g-0000"
+
+### Example 2
+
+*Binary data:* `[167, 13, 0, 0, 0]` = `[10100111, 00001101, 00000000, 00000000, 00000000]`  
+
+*Encoded string:* "0-mw6g-0000"
+
+*Strictly encoded string:* "mw6g-0000"
+
 
 Note that the padding here is important, because without that, we'd decode the encoded string to `[167, 13, 0, 0, 0]`
 
@@ -126,4 +138,5 @@ Extra
 TODO
 ----
 
- - [ ] Improve the validators so that the padding number is checked against the last characters
+ - [ ] Check for validator improvements
+ - [ ] Benchmarks

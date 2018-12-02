@@ -29,6 +29,12 @@ var (
 	standardBfhRegex   = regexp.MustCompile(standardBfhRegexString)
 	acceptableBfhRegex = regexp.MustCompile(acceptableBfhRegexString)
 	strictBfhRegex     = regexp.MustCompile(strictBfhRegexString)
+	leftover2          = []string{"00", "0g", "10", "1g", "20", "2g", "30", "3g", "40", "4g", "50", "5g", "60", "6g", "70", "7g"}
+	leftover3          = []string{"00", "20", "40", "60", "80", "a0", "c0", "e0", "g0", "j0", "m0", "p0", "r0", "t0", "w0", "y0"}
+	leftover4          = []string{"00", "80", "g0", "r0"}
+	leftoverMap2       map[string]string
+	leftoverMap3       map[string]string
+	leftoverMap4       map[string]string
 )
 
 func init() {
@@ -225,14 +231,109 @@ func splitByte(charValue uint8, stringIndex int) (byte, byte) {
 func IsWellFormattedBfh(str string) bool {
 	fixedStr := str + "-"
 
-	return standardBfhRegex.MatchString(fixedStr)
+	if !standardBfhRegex.MatchString(fixedStr) {
+		return false
+	}
+
+	return isPaddingRight(strings.Replace(fixedStr, "-", "", -1))
 }
 
 // IsAcceptableBfh returns true if bfh can accept it for decoding
 func IsAcceptableBfh(str string) bool {
 	fixedStr := strings.Replace(str, "-", "", -1)
 
-	return acceptableBfhRegex.MatchString(fixedStr)
+	if !acceptableBfhRegex.MatchString(fixedStr) {
+		return false
+	}
+
+	return isPaddingRight(fixedStr)
+}
+
+func isPaddingRight(str string) bool {
+	l := len(str)
+
+	if l == 1 && str == "0" {
+		return true
+	}
+
+	if l < 9 {
+		return false
+	}
+
+	switch str[0:1] {
+	case "1":
+		isPaddingRight1(str)
+	case "2":
+		isPaddingRight2(str)
+	case "3":
+		isPaddingRight3(str)
+	case "4":
+		isPaddingRight4(str)
+	}
+
+	return true
+}
+
+func isPaddingRight1(str string) bool {
+	l := len(str)
+
+	return str[l-6:] == "000000"
+}
+
+func isPaddingRight2(str string) bool {
+	l := len(str)
+
+	if str[l-4:] != "0000" {
+		return false
+	}
+
+	if leftoverMap2 == nil {
+		leftoverMap2 = map[string]string{}
+
+		for _, v := range leftover2 {
+			leftoverMap2[v] = v
+		}
+	}
+
+	_, ok := leftoverMap2[str[l-6:l-4]]
+
+	return ok
+}
+
+func isPaddingRight3(str string) bool {
+	l := len(str)
+
+	if str[l-2:] != "00" {
+		return false
+	}
+
+	if leftoverMap3 == nil {
+		leftoverMap3 = map[string]string{}
+
+		for _, v := range leftover2 {
+			leftoverMap3[v] = v
+		}
+	}
+
+	_, ok := leftoverMap3[str[l-4:l-2]]
+
+	return ok
+}
+
+func isPaddingRight4(str string) bool {
+	l := len(str)
+
+	if leftoverMap4 == nil {
+		leftoverMap4 = map[string]string{}
+
+		for _, v := range leftover4 {
+			leftoverMap4[v] = v
+		}
+	}
+
+	_, ok := leftoverMap4[str[l-2:]]
+
+	return ok
 }
 
 // IsStrictBfh returns true if the string is strict-compatible

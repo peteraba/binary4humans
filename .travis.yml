@@ -7,8 +7,9 @@ go:
   - 1.11.x
   - master
 
-install:
+before_install:
   - curl -L https://git.io/vp6lP | sh
+  - go get github.com/stretchr/testify/assert
 
 script:
   - gometalinter --config=gometalinter.json --deadline=10m
