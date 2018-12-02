@@ -2,6 +2,7 @@ package bfh
 
 import (
 	"crypto/rand"
+	"encoding/base32"
 	"fmt"
 	"testing"
 
@@ -115,6 +116,12 @@ func Test_Encode(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("fail on nil", func(t *testing.T) {
+		_, err := Encode(nil)
+
+		assert.Error(t, err)
+	})
 }
 
 func Test_EncodeStrict(t *testing.T) {
@@ -189,13 +196,19 @@ func Test_EncodeStrict(t *testing.T) {
 		}
 	})
 
-	t.Run("fail", func(t *testing.T) {
+	t.Run("fail on wrong length", func(t *testing.T) {
 		b := make([]byte, 14)
 
 		_, err := rand.Read(b)
 		require.NoError(t, err)
 
 		_, err = EncodeStrict(b)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("fail on nil", func(t *testing.T) {
+		_, err := EncodeStrict(nil)
 
 		assert.Error(t, err)
 	})
@@ -710,4 +723,142 @@ func Test_IsStrictBfh(t *testing.T) {
 			})
 		}
 	})
+}
+
+var encodeResult string
+
+// from fib_test.go
+func Benchmark_Encode_23(b *testing.B) {
+	data := make([]byte, 23)
+
+	_, err := rand.Read(data)
+	require.NoError(b, err)
+
+	var str string
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		str, _ = Encode(data)
+	}
+
+	encodeResult = str
+}
+
+// from fib_test.go
+func Benchmark_Base32_23(b *testing.B) {
+	data := make([]byte, 23)
+
+	_, err := rand.Read(data)
+	require.NoError(b, err)
+
+	var str string
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		str = base32.StdEncoding.EncodeToString(data)
+	}
+
+	encodeResult = str
+}
+
+// from fib_test.go
+func Benchmark_EncodeStrict_20(b *testing.B) {
+	data := make([]byte, 20)
+
+	_, err := rand.Read(data)
+	require.NoError(b, err)
+
+	var str string
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		str, _ = Encode(data)
+	}
+
+	encodeResult = str
+}
+
+// from fib_test.go
+func Benchmark_Base32Strict_20(b *testing.B) {
+	data := make([]byte, 20)
+
+	_, err := rand.Read(data)
+	require.NoError(b, err)
+
+	var str string
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		str = base32.StdEncoding.EncodeToString(data)
+	}
+
+	encodeResult = str
+}
+
+// from fib_test.go
+func Benchmark_Encode_238(b *testing.B) {
+	data := make([]byte, 238)
+
+	_, err := rand.Read(data)
+	require.NoError(b, err)
+
+	var str string
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		str, _ = Encode(data)
+	}
+
+	encodeResult = str
+}
+
+// from fib_test.go
+func Benchmark_Base32_238(b *testing.B) {
+	data := make([]byte, 238)
+
+	_, err := rand.Read(data)
+	require.NoError(b, err)
+
+	var str string
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		str = base32.StdEncoding.EncodeToString(data)
+	}
+
+	encodeResult = str
+}
+
+// from fib_test.go
+func Benchmark_EncodeStrict_240(b *testing.B) {
+	data := make([]byte, 240)
+
+	_, err := rand.Read(data)
+	require.NoError(b, err)
+
+	var str string
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		str, _ = Encode(data)
+	}
+
+	encodeResult = str
+}
+
+// from fib_test.go
+func Benchmark_Base32Strict_240(b *testing.B) {
+	data := make([]byte, 240)
+
+	_, err := rand.Read(data)
+	require.NoError(b, err)
+
+	var str string
+
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		str = base32.StdEncoding.EncodeToString(data)
+	}
+
+	encodeResult = str
 }

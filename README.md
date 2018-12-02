@@ -1,7 +1,7 @@
 BFH - Binary 4 Humans
 =====================
 
-[![Travis](https://img.shields.io/travis/peteraba/binary4humans.svg?style=flat-square&&branch=master)](https://travis-ci.com/peteraba/binary4humans)
+[![Travis](https://img.shields.io/travis/com/peteraba/binary4humans.svg?style=flat-square&&branch=master)](https://travis-ci.com/peteraba/binary4humans)
 [![GoReportCard](https://goreportcard.com/badge/github.com/peteraba/binary4humans?style=flat-square)](https://goreportcard.com/report/github.com/peteraba/binary4humans)
 [![Releases](https://img.shields.io/github/release/peteraba/binary4humans.svg?style=flat-square)](https://github.com/peteraba/binary4humans/releases)
 [![LICENSE](https://img.shields.io/github/license/peteraba/binary4humans.svg?style=flat-square)](https://github.com/peteraba/binary4humans/blob/master/LICENSE)
@@ -9,6 +9,8 @@ BFH - Binary 4 Humans
 This library aims to help displaying binary data to human users of systems, primary goal was displaying user tokens.
 In purpose it is very similar to the standard [base32](https://golang.org/pkg/encoding/base32/) library, in some details 
 it is inspired by [Crockford's Base32 Encoding](https://www.crockford.com/wrmg/base32.html) definition.
+
+**WARNING!** Using `encoding/base32` library is currently about 50 to 100 times faster than `bfh`, so keep that in mind when making decisions! (See benchmarks below)
 
 
 Definition details
@@ -135,8 +137,17 @@ Extra
  - For checking strings encoding in `strict` mode there's a validator called `IsStrictBfh` which also expects the dashes
  to be placed properly
 
+Benchmarks
+----------
+
+```
+Benchmark_Encode-8         	   50000	     37793 ns/op
+Benchmark_Base32-8         	 3000000	       521 ns/op
+Benchmark_EncodeStrict-8   	   50000	     37873 ns/op
+Benchmark_Base32Strict-8   	 3000000	       511 ns/op
+```
+
 TODO
 ----
 
- - [ ] Check for validator improvements
- - [ ] Benchmarks
+ - [ ] Improve performance
