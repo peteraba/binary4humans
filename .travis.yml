@@ -1,0 +1,15 @@
+language: go
+
+sudo: false
+
+go:
+  - 1.10.x
+  - 1.11.x
+  - master
+
+install:
+  - curl -L https://git.io/vp6lP | sh
+
+script:
+  - gometalinter --config=gometalinter.json --deadline=10m
+  - go test -race -v -bench=.

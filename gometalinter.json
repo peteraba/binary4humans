@@ -1,0 +1,16 @@
+{
+    "Disable": [
+        "errcheck",
+        "interfacer",
+        "gotypex",
+        "gotype"
+    ],
+    "Exclude": [
+        "Errors unhandled.,LOW,HIGH \\(gas\\)",
+        "Errors unhandled.,LOW,HIGH \\(gosec\\)",
+        "struct .* could have size",
+        "declaration of \"err\" shadows declaration",
+        "go/src/runtime",
+        "go/src/internal"
+    ]
+}
