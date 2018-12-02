@@ -1,6 +1,7 @@
 package bfh
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -49,26 +50,26 @@ func init() {
 // Encode encodes binary data into a human readable string
 func Encode(b []byte) (string, error) {
 	var (
-		strBuilder strings.Builder
-		err        error
+		buf bytes.Buffer
+		err error
 	)
 
 	if b == nil {
 		return "", errors.New(errMsgBinaryDataMustNotBeNil)
 	}
 
-	b, err = padBytes(&strBuilder, b)
+	b, err = padBytes(&buf, b)
 	if err != nil {
 		return "", err
 	}
 
-	return encode(b, &strBuilder)
+	return encode(b, &buf)
 }
 
 // EncodeStrict encodes binary data with a length dividable by 5 into a simplified human readable string
 func EncodeStrict(b []byte) (string, error) {
 	var (
-		strBuilder strings.Builder
+		buf bytes.Buffer
 	)
 
 	if b == nil {
@@ -79,10 +80,10 @@ func EncodeStrict(b []byte) (string, error) {
 		return "", errors.New(errMsgStrictMustBeDividableBy5)
 	}
 
-	return encode(b, &strBuilder)
+	return encode(b, &buf)
 }
 
-func encode(b []byte, strBuilder *strings.Builder) (string, error) {
+func encode(b []byte, buf *bytes.Buffer) (string, error) {
 	var (
 		readBits = 0
 		maxBits  = len(b) * 8
@@ -92,7 +93,7 @@ func encode(b []byte, strBuilder *strings.Builder) (string, error) {
 	for maxBits > readBits {
 		f := readByte(b, readBits)
 
-		_, err = fmt.Fprintf(strBuilder, "%s", digits[f:f+1])
+		_, err = fmt.Fprintf(buf, "%s", digits[f:f+1])
 		if err != nil {
 			return "", err
 		}
@@ -103,18 +104,18 @@ func encode(b []byte, strBuilder *strings.Builder) (string, error) {
 			continue
 		}
 
-		_, err = fmt.Fprint(strBuilder, "-")
+		_, err = fmt.Fprint(buf, "-")
 		if err != nil {
 			return "", err
 		}
 	}
 
-	return strBuilder.String(), nil
+	return buf.String(), nil
 }
 
-func padBytes(strBuilder *strings.Builder, b []byte) ([]byte, error) {
+func padBytes(buf *bytes.Buffer, b []byte) ([]byte, error) {
 	pad := (5 - len(b)%5) % 5
-	_, err := fmt.Fprintf(strBuilder, "%d-", pad)
+	_, err := fmt.Fprintf(buf, "%d-", pad)
 	if err != nil {
 		return nil, err
 	}
@@ -169,16 +170,16 @@ func Decode(str string) ([]byte, error) {
 		return nil, errors.New(errMsgStrictMustBeDividableBy8)
 	}
 
-	bytes, err := decode(str)
+	data, err := decode(str)
 	if err != nil {
 		return nil, err
 	}
 
 	if padding > 0 {
-		return bytes[:len(bytes)-int(padding)], nil
+		return data[:len(data)-int(padding)], nil
 	}
 
-	return bytes, nil
+	return data, nil
 }
 
 // DecodeStrict decodes a string into binary data without using any padding
@@ -186,6 +187,7 @@ func DecodeStrict(str string) ([]byte, error) {
 	if !IsStrictBfh(str) {
 		return nil, errors.New(errMsgStrictInvalid)
 	}
+
 	// dashes are not needed, they only help readability
 	str = strings.Replace(str, "-", "", -1)
 
@@ -197,7 +199,7 @@ func decode(str string) ([]byte, error) {
 	// - len(str)-1 as base since first byte represents the padding
 	// - *5/8 as 1 byte represents 5 bits and 1 byte is 8 bits of course
 	// - -padding to get the original length
-	bytes := make([]byte, len(str)*5/8)
+	data := make([]byte, len(str)*5/8)
 
 	for i := 0; i < len(str); i++ {
 		charValue, ok := digitMap[str[i:i+1]]
@@ -209,14 +211,14 @@ func decode(str string) ([]byte, error) {
 
 		firstByte, secondByte := splitByte(charValue, i)
 
-		bytes[byteIndex] |= firstByte
+		data[byteIndex] |= firstByte
 
-		if secondByte > 0 && len(bytes) > byteIndex+1 {
-			bytes[byteIndex+1] |= secondByte
+		if secondByte > 0 && len(data) > byteIndex+1 {
+			data[byteIndex+1] |= secondByte
 		}
 	}
 
-	return bytes, nil
+	return data, nil
 }
 
 func splitByte(charValue uint8, stringIndex int) (byte, byte) {

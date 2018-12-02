@@ -2,7 +2,6 @@ package bfh
 
 import (
 	"crypto/rand"
-	"encoding/base32"
 	"fmt"
 	"testing"
 
@@ -805,46 +804,6 @@ func Benchmark_BfhEncodeStrict_240(b *testing.B) {
 	encodeResult = str
 }
 
-func Benchmark_Base32Encode_23(b *testing.B) {
-	var str string
-
-	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data[:23])
-	}
-
-	encodeResult = str
-}
-
-func Benchmark_Base32Encode_20(b *testing.B) {
-	var str string
-
-	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data[:20])
-	}
-
-	encodeResult = str
-}
-
-func Benchmark_Base32Encode_238(b *testing.B) {
-	var str string
-
-	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data[:238])
-	}
-
-	encodeResult = str
-}
-
-func Benchmark_Base32Encode_240(b *testing.B) {
-	var str string
-
-	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data[:240])
-	}
-
-	encodeResult = str
-}
-
 func Benchmark_BfhDecode_23(b *testing.B) {
 	var decodedData []byte
 
@@ -885,46 +844,86 @@ func Benchmark_BfhDecodeStrict_240(b *testing.B) {
 	decodedResult = decodedData
 }
 
-func Benchmark_Base32Decode_23(b *testing.B) {
-	var decodedData []byte
-	var str = base32.StdEncoding.EncodeToString(data[:23])
-
-	for n := 0; n < b.N; n++ {
-		decodedData, _ = base32.StdEncoding.DecodeString(str)
-	}
-
-	decodedResult = decodedData
-}
-
-func Benchmark_Base32Decode_20(b *testing.B) {
-	var decodedData []byte
-	var str = base32.StdEncoding.EncodeToString(data[:20])
-
-	for n := 0; n < b.N; n++ {
-		decodedData, _ = base32.StdEncoding.DecodeString(str)
-	}
-
-	decodedResult = decodedData
-}
-
-func Benchmark_Base32Decode_238(b *testing.B) {
-	var decodedData []byte
-	var str = base32.StdEncoding.EncodeToString(data[:238])
-
-	for n := 0; n < b.N; n++ {
-		decodedData, _ = base32.StdEncoding.DecodeString(str)
-	}
-
-	decodedResult = decodedData
-}
-
-func Benchmark_Base32Decode_240(b *testing.B) {
-	var decodedData []byte
-	var str = base32.StdEncoding.EncodeToString(data[:240])
-
-	for n := 0; n < b.N; n++ {
-		decodedData, _ = base32.StdEncoding.DecodeString(str)
-	}
-
-	decodedResult = decodedData
-}
+// func Benchmark_Base32Encode_23(b *testing.B) {
+// 	var str string
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(data[:23])
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Encode_20(b *testing.B) {
+// 	var str string
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(data[:20])
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Encode_238(b *testing.B) {
+// 	var str string
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(data[:238])
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Encode_240(b *testing.B) {
+// 	var str string
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(data[:240])
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Decode_23(b *testing.B) {
+// 	var decodedData []byte
+// 	var str = base32.StdEncoding.EncodeToString(data[:23])
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
+//
+// func Benchmark_Base32Decode_20(b *testing.B) {
+// 	var decodedData []byte
+// 	var str = base32.StdEncoding.EncodeToString(data[:20])
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
+//
+// func Benchmark_Base32Decode_238(b *testing.B) {
+// 	var decodedData []byte
+// 	var str = base32.StdEncoding.EncodeToString(data[:238])
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
+//
+// func Benchmark_Base32Decode_240(b *testing.B) {
+// 	var decodedData []byte
+// 	var str = base32.StdEncoding.EncodeToString(data[:240])
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
