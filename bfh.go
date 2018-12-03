@@ -94,8 +94,8 @@ func getDigit(r uint8) (byte, error) {
 	return 0, errors.New(errMsgContainsInvalidCharacter)
 }
 
-// removeByte is used instead of strings.Replace because it is much faster
-func removeByte(str string, ch byte) string {
+// RemoveByte is used instead of strings.Replace because it is much faster
+func RemoveByte(str string, ch byte) string {
 	dashCount := 0
 	for i := 0; i < len(str); i++ {
 		if str[i] == ch {
@@ -122,32 +122,52 @@ func removeByte(str string, ch byte) string {
 	return string(b)
 }
 
-// Encode encodes binary data into a human readable string
-func Encode(b []byte) (string, error) {
+// Encode encodes binary data into a human readable text
+func Encode(b []byte) ([]byte, error) {
 	if b == nil {
-		return "", errors.New(errMsgBinaryDataMustNotBeNil)
+		return nil, errors.New(errMsgBinaryDataMustNotBeNil)
 	}
 
 	result := newNormalResult(len(b))
 
 	result = encode(b, result, 2)
 
+	return result, nil
+}
+
+// EncodeStr encodes binary data into a human readable string
+func EncodeStr(b []byte) (string, error) {
+	result, err := Encode(b)
+	if err != nil {
+		return "", err
+	}
+
 	return string(result), nil
 }
 
-// EncodeStrict encodes binary data with a length dividable by 5 into a simplified human readable string
-func EncodeStrict(b []byte) (string, error) {
+// EncodeStrict encodes binary data with a length dividable by 5 into a simplified human readable text
+func EncodeStrict(b []byte) ([]byte, error) {
 	if b == nil {
-		return "", errors.New(errMsgBinaryDataMustNotBeNil)
+		return nil, errors.New(errMsgBinaryDataMustNotBeNil)
 	}
 
 	if len(b)%5 != 0 {
-		return "", errors.New(errMsgStrictMustBeDividableBy5)
+		return nil, errors.New(errMsgStrictMustBeDividableBy5)
 	}
 
 	result := newStrictEncodeResult(len(b))
 
 	result = encode(b, result, 0)
+
+	return result, nil
+}
+
+// EncodeStrictStr encodes binary data into a human readable string
+func EncodeStrictStr(b []byte) (string, error) {
+	result, err := EncodeStrict(b)
+	if err != nil {
+		return "", err
+	}
 
 	return string(result), nil
 }
@@ -247,10 +267,20 @@ func readByte(b []byte, readBits int) byte {
 	return f | s
 }
 
-// Decode decodes a human readable string into a binary data
-func Decode(str string) ([]byte, error) {
+// Decode decodes some binary data from a human readable text
+func Decode(b []byte) ([]byte, error) {
+	data, err := DecodeStr(string(b))
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+// DecodeStr decodes some binary data from a human readable string
+func DecodeStr(str string) ([]byte, error) {
 	// dashes are not needed, they only help readability
-	str = removeByte(str, separator)
+	str = RemoveByte(str, separator)
 
 	padding, err := getDigit(str[0])
 	if err != nil {
@@ -278,10 +308,20 @@ func Decode(str string) ([]byte, error) {
 	return data, nil
 }
 
-// DecodeStrict decodes a string into binary data without using any padding
-func DecodeStrict(str string) ([]byte, error) {
+// DecodeStrict decodes some binary data from a human readable text without using any padding
+func DecodeStrict(b []byte) ([]byte, error) {
+	data, err := DecodeStrictStr(string(b))
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+// DecodeStrictStr decodes some binary data from a human readable string without using any padding
+func DecodeStrictStr(str string) ([]byte, error) {
 	// dashes are not needed, they only help readability
-	str = removeByte(str, separator)
+	str = RemoveByte(str, separator)
 
 	if len(str)%8 != 0 {
 		return nil, errors.New(errMsgStrictInvalid)
@@ -342,14 +382,14 @@ func IsWellFormatted(str string) bool {
 		return false
 	}
 
-	str = removeByte(str, separator)
+	str = RemoveByte(str, separator)
 
 	return isValidEnding(len(str), str)
 }
 
 // IsAcceptable returns true if bfh can accept it for decoding
 func IsAcceptable(str string) bool {
-	fixedStr := removeByte(str, separator)
+	fixedStr := RemoveByte(str, separator)
 
 	if len(str) == 0 {
 		return false

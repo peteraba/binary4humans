@@ -65,7 +65,7 @@ func Test_Encode(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				actualResult, err := Encode(tt.Bytes)
+				actualResult, err := EncodeStr(tt.Bytes)
 
 				assert.NoError(t, err)
 				assert.Equal(t, tt.ExpectedResult, actualResult)
@@ -108,7 +108,7 @@ func Test_Encode(t *testing.T) {
 				_, err := rand.Read(b)
 				require.NoError(t, err)
 
-				str, err := Encode(b)
+				str, err := EncodeStr(b)
 
 				assert.NoError(t, err)
 				assert.Regexp(t, fmt.Sprintf("^[0-4]-([a-z0-9]{4}\\-){%d}$", tt.PacketCount), str+"-")
@@ -117,13 +117,13 @@ func Test_Encode(t *testing.T) {
 	})
 
 	t.Run("fail on nil", func(t *testing.T) {
-		_, err := Encode(nil)
+		_, err := EncodeStr(nil)
 
 		assert.Error(t, err)
 	})
 }
 
-func Test_EncodeStrict(t *testing.T) {
+func Test_EncodeStrictStr(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		tests := []struct {
 			Name           string
@@ -149,7 +149,7 @@ func Test_EncodeStrict(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				actualResult, err := EncodeStrict(tt.Bytes)
+				actualResult, err := EncodeStrictStr(tt.Bytes)
 
 				assert.NoError(t, err)
 				assert.Equal(t, tt.ExpectedResult, actualResult)
@@ -187,7 +187,7 @@ func Test_EncodeStrict(t *testing.T) {
 				_, err := rand.Read(b)
 				require.NoError(t, err)
 
-				str, err := EncodeStrict(b)
+				str, err := EncodeStrictStr(b)
 
 				assert.NoError(t, err)
 				assert.Regexp(t, fmt.Sprintf("^([a-z0-9]{4}\\-){%d}$", tt.PacketCount), str+"-")
@@ -201,13 +201,13 @@ func Test_EncodeStrict(t *testing.T) {
 		_, err := rand.Read(b)
 		require.NoError(t, err)
 
-		_, err = EncodeStrict(b)
+		_, err = EncodeStrictStr(b)
 
 		assert.Error(t, err)
 	})
 
 	t.Run("fail on nil", func(t *testing.T) {
-		_, err := EncodeStrict(nil)
+		_, err := EncodeStrictStr(nil)
 
 		assert.Error(t, err)
 	})
@@ -269,7 +269,7 @@ func Test_Decode(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				actualResult, err := Decode(tt.String)
+				actualResult, err := Decode([]byte(tt.String))
 
 				require.NoError(t, err)
 				assert.Equal(t, tt.ExpectedResult, actualResult)
@@ -306,7 +306,7 @@ func Test_Decode(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				_, err := Decode(tt.String)
+				_, err := Decode([]byte(tt.String))
 
 				assert.Error(t, err, fmt.Sprintf("Failing value: %s", tt.String))
 			})
@@ -347,6 +347,149 @@ func Test_Decode(t *testing.T) {
 				require.NoError(t, err)
 
 				decoded, err := Decode(encoded)
+				require.NoError(t, err)
+
+				assert.Equal(t, b, decoded)
+			})
+		}
+	})
+}
+
+
+func Test_DecodeStr(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		tests := []struct {
+			Name           string
+			String         string
+			ExpectedResult []byte
+		}{
+			{
+				Name:           "empty",
+				String:         "0-",
+				ExpectedResult: []byte{},
+			},
+			{
+				Name:           "0x7e",
+				String:         "4-fr00-0000",
+				ExpectedResult: []byte{126},
+			},
+			{
+				Name:           "0xff",
+				String:         "4-zw00-0000",
+				ExpectedResult: []byte{255},
+			},
+			{
+				Name:           "0xff",
+				String:         "4-zw00-0000",
+				ExpectedResult: []byte{255},
+			},
+			{
+				Name:           "zeros",
+				String:         "0-0000-0000",
+				ExpectedResult: []byte{0, 0, 0, 0, 0},
+			},
+			{
+				Name:           "mod5 slice length of 0xff",
+				String:         "0-zzzz-zzzz",
+				ExpectedResult: []byte{255, 255, 255, 255, 255},
+			},
+			{
+				Name:           "6 bytes long 0xff",
+				String:         "4-zzzz-zzzz-zw00-0000",
+				ExpectedResult: []byte{255, 255, 255, 255, 255, 255},
+			},
+			{
+				Name:           "4 bytes long 0xff",
+				String:         "1-zzzz-zzr0",
+				ExpectedResult: []byte{255, 255, 255, 255},
+			},
+			{
+				Name:           "somewhat random numbers",
+				String:         "4-zwga-e07x-2400-0000",
+				ExpectedResult: []byte{255, 32, 167, 0, 253, 17},
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				actualResult, err := DecodeStr(tt.String)
+
+				require.NoError(t, err)
+				assert.Equal(t, tt.ExpectedResult, actualResult)
+			})
+		}
+	})
+
+	t.Run("fail", func(t *testing.T) {
+		tests := []struct {
+			Name           string
+			String         string
+		}{
+			{
+				Name:           "invalid padding character",
+				String:         "o-zwga-e07x-2400-0000",
+			},
+			{
+				Name:           "invalid padding",
+				String:         "7-zwga-e07x-2400-0000",
+			},
+			{
+				Name:           "invalid character",
+				String:         "4-ouga-e07x-2400-0000",
+			},
+			{
+				Name:           "fail wrong padding",
+				String:         "6-zwga-e07x-2400-0000",
+			},
+			{
+				Name:           "fail wrong length",
+				String:         "0-zwga-e0",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				_, err := DecodeStr(tt.String)
+
+				assert.Error(t, err, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
+	t.Run("random success", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			Length int
+		}{
+			{
+				Name:   "37",
+				Length: 37,
+			},
+			{
+				Name:   "69",
+				Length: 69,
+			},
+			{
+				Name:   "120",
+				Length: 120,
+			},
+			{
+				Name:   "141",
+				Length: 141,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				b := make([]byte, tt.Length)
+
+				_, err := rand.Read(b)
+				require.NoError(t, err)
+
+				encoded, err := EncodeStr(b)
+				require.NoError(t, err)
+
+				decoded, err := DecodeStr(encoded)
 				require.NoError(t, err)
 
 				assert.Equal(t, b, decoded)
@@ -396,7 +539,7 @@ func Test_DecodeStrict(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				actualResult, err := DecodeStrict(tt.String)
+				actualResult, err := DecodeStrict([]byte(tt.String))
 
 				require.NoError(t, err)
 				assert.Equal(t, tt.ExpectedResult, actualResult)
@@ -421,7 +564,7 @@ func Test_DecodeStrict(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				_, err := DecodeStrict(tt.String)
+				_, err := DecodeStrict([]byte(tt.String))
 
 				assert.Error(t, err, fmt.Sprintf("Failing value: %s", tt.String))
 			})
@@ -450,6 +593,109 @@ func Test_DecodeStrict(t *testing.T) {
 				require.NoError(t, err)
 
 				decoded, err := DecodeStrict(encoded)
+				require.NoError(t, err)
+
+				assert.Equal(t, b, decoded)
+			})
+		}
+	})
+}
+
+func Test_DecodeStrictStr(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		tests := []struct {
+			Name           string
+			String         string
+			ExpectedResult []byte
+		}{
+			{
+				Name:           "empty",
+				String:         "",
+				ExpectedResult: []byte{},
+			},
+			{
+				Name:           "0x7e",
+				String:         "fr00-0000",
+				ExpectedResult: []byte{126, 0, 0, 0, 0},
+			},
+			{
+				Name:           "0xff",
+				String:         "zw00-0000",
+				ExpectedResult: []byte{255, 0, 0, 0, 0},
+			},
+			{
+				Name:           "zeros",
+				String:         "0000-0000",
+				ExpectedResult: []byte{0, 0, 0, 0, 0},
+			},
+			{
+				Name:           "5x 0xff",
+				String:         "zzzz-zzzz",
+				ExpectedResult: []byte{255, 255, 255, 255, 255},
+			},
+			{
+				Name:           "somewhat random numbers",
+				String:         "zwga-e07x-2400-0000",
+				ExpectedResult: []byte{255, 32, 167, 0, 253, 17, 0, 0, 0, 0},
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				actualResult, err := DecodeStrictStr(tt.String)
+
+				require.NoError(t, err)
+				assert.Equal(t, tt.ExpectedResult, actualResult)
+			})
+		}
+	})
+
+	t.Run("fail", func(t *testing.T) {
+		tests := []struct {
+			Name           string
+			String         string
+		}{
+			{
+				Name:           "invalid character",
+				String:         "ouga-e07x-2400-0000",
+			},
+			{
+				Name:           "fail wrong length",
+				String:         "zwga-e0",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				_, err := DecodeStrictStr(tt.String)
+
+				assert.Error(t, err, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
+	t.Run("random success", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			Length int
+		}{
+			{
+				Name:   "40",
+				Length: 40,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				b := make([]byte, tt.Length)
+
+				_, err := rand.Read(b)
+				require.NoError(t, err)
+
+				encoded, err := EncodeStrictStr(b)
+				require.NoError(t, err)
+
+				decoded, err := DecodeStrictStr(encoded)
 				require.NoError(t, err)
 
 				assert.Equal(t, b, decoded)
@@ -610,7 +856,7 @@ func Test_IsWellFormatted(t *testing.T) {
 				_, err := rand.Read(b)
 				require.NoError(t, err)
 
-				encoded, err := Encode(b)
+				encoded, err := EncodeStr(b)
 				require.NoError(t, err)
 
 				isValid := IsWellFormatted(encoded)
@@ -633,7 +879,7 @@ func Test_IsWellFormatted(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				encoded, err := Encode(tt.Content)
+				encoded, err := EncodeStr(tt.Content)
 				require.NoError(t, err)
 
 				actualResult := IsWellFormatted(encoded)
@@ -656,7 +902,7 @@ func Test_IsWellFormatted(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				encoded, err := Encode(tt.Content)
+				encoded, err := EncodeStr(tt.Content)
 				require.NoError(t, err)
 
 				actualResult := IsWellFormatted(encoded)
@@ -679,7 +925,7 @@ func Test_IsWellFormatted(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				encoded, err := Encode(tt.Content)
+				encoded, err := EncodeStr(tt.Content)
 				require.NoError(t, err)
 
 				actualResult := IsWellFormatted(encoded)
@@ -702,7 +948,7 @@ func Test_IsWellFormatted(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				encoded, err := Encode(tt.Content)
+				encoded, err := EncodeStr(tt.Content)
 				require.NoError(t, err)
 
 				actualResult := IsWellFormatted(encoded)
@@ -873,7 +1119,7 @@ func Test_IsAcceptable(t *testing.T) {
 				_, err := rand.Read(b)
 				require.NoError(t, err)
 
-				encoded, err := Encode(b)
+				encoded, err := EncodeStr(b)
 				require.NoError(t, err)
 
 				isValid := IsAcceptable(encoded)
@@ -896,7 +1142,7 @@ func Test_IsAcceptable(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				encoded, err := Encode(tt.Content)
+				encoded, err := EncodeStr(tt.Content)
 				require.NoError(t, err)
 
 				actualResult := IsAcceptable(encoded)
@@ -919,7 +1165,7 @@ func Test_IsAcceptable(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				encoded, err := Encode(tt.Content)
+				encoded, err := EncodeStr(tt.Content)
 				require.NoError(t, err)
 
 				actualResult := IsAcceptable(encoded)
@@ -942,7 +1188,7 @@ func Test_IsAcceptable(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				encoded, err := Encode(tt.Content)
+				encoded, err := EncodeStr(tt.Content)
 				require.NoError(t, err)
 
 				actualResult := IsAcceptable(encoded)
@@ -965,7 +1211,7 @@ func Test_IsAcceptable(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				encoded, err := Encode(tt.Content)
+				encoded, err := EncodeStr(tt.Content)
 				require.NoError(t, err)
 
 				actualResult := IsAcceptable(encoded)
@@ -1092,7 +1338,7 @@ func Test_IsStrict(t *testing.T) {
 				_, err := rand.Read(b)
 				require.NoError(t, err)
 
-				encoded, err := EncodeStrict(b)
+				encoded, err := EncodeStrictStr(b)
 				require.NoError(t, err)
 
 				isValid := IsStrict(encoded)
@@ -1144,81 +1390,81 @@ var (
 	validatedResult bool
 )
 
-func Benchmark_Encode_23(b *testing.B) {
+func Benchmark_EncodeStr_23(b *testing.B) {
 	var str string
 
 	for n := 0; n < b.N; n++ {
-		str, _ = Encode(data[:23])
+		str, _ = EncodeStr(data[:23])
 	}
 
 	encodeResult = str
 }
 
-func Benchmark_EncodeStrict_25(b *testing.B) {
+func Benchmark_EncodeStrictStr_25(b *testing.B) {
 	var str string
 
 	for n := 0; n < b.N; n++ {
-		str, _ = EncodeStrict(data[:25])
+		str, _ = EncodeStrictStr(data[:25])
 	}
 
 	encodeResult = str
 }
 
-func Benchmark_Encode_238(b *testing.B) {
+func Benchmark_EncodeStr_238(b *testing.B) {
 	var str string
 
 	for n := 0; n < b.N; n++ {
-		str, _ = Encode(data[:238])
+		str, _ = EncodeStr(data[:238])
 	}
 
 	encodeResult = str
 }
 
-func Benchmark_EncodeStrict_240(b *testing.B) {
+func Benchmark_EncodeStrictStr_240(b *testing.B) {
 	var str string
 
 	for n := 0; n < b.N; n++ {
-		str, _ = EncodeStrict(data)
+		str, _ = EncodeStrictStr(data)
 	}
 
 	encodeResult = str
 }
 
-func Benchmark_Decode_23(b *testing.B) {
+func Benchmark_DecodeStr_23(b *testing.B) {
 	var decodedData []byte
 
 	for n := 0; n < b.N; n++ {
-		decodedData, _ = Decode(encodedData23)
+		decodedData, _ = DecodeStr(encodedData23)
 	}
 
 	decodedResult = decodedData
 }
 
-func Benchmark_DecodeStrict_25(b *testing.B) {
+func Benchmark_DecodeStrictStr_25(b *testing.B) {
 	var decodedData []byte
 
 	for n := 0; n < b.N; n++ {
-		decodedData, _ = DecodeStrict(encodedData25)
+		decodedData, _ = DecodeStrictStr(encodedData25)
 	}
 
 	decodedResult = decodedData
 }
 
-func Benchmark_Decode_238(b *testing.B) {
+func Benchmark_DecodeStr_238(b *testing.B) {
 	var decodedData []byte
 
 	for n := 0; n < b.N; n++ {
-		decodedData, _ = Decode(encodedData238)
+		decodedData, _ = DecodeStr(encodedData238)
 	}
 
 	decodedResult = decodedData
 }
 
-func Benchmark_DecodeStrict_240(b *testing.B) {
+func Benchmark_DecodeStrictStr_240(b *testing.B) {
 	var decodedData []byte
 
 	for n := 0; n < b.N; n++ {
-		decodedData, _ = DecodeStrict(encodedData240)
+		decodedData, _ = DecodeStrictStr(encodedData240)
 	}
 
 	decodedResult = decodedData

@@ -78,14 +78,14 @@ import (
 
 func main() {
     binaryData := []byte{255, 32, 167, 0, 253, 17, 215, 43}
-    encoded, err := bfh.Encode(binaryData)
+    encoded, err := bfh.EncodeStr(binaryData)
     if err != nil {
         // handle error...
     }
     fmt.Println(encoded)
     // 2-zwga-e07x-27bj-p000
     
-    decoded, err := bfh.Decode(encoded)
+    decoded, err := bfh.DecodeStr(encoded)
     if err != nil {
         // handle error...
     }
@@ -107,14 +107,14 @@ import (
 
 func main() {
     binaryData := []byte{255, 32, 167, 0, 253, 17, 215, 43, 0, 0}
-    encoded, err := bfh.EncodeStrict(binaryData)
+    encoded, err := bfh.EncodeStrictStr(binaryData)
     if err != nil {
         // handle error...
     }
     fmt.Println(encoded)
     // zwga-e07x-27bj-p000
     
-    decoded, err := bfh.DecodeStrict(encoded)
+    decoded, err := bfh.DecodeStrictStr(encoded)
     if err != nil {
         // handle error...
     }
@@ -145,17 +145,17 @@ already and although further improvements are definitely possible, they may neve
 goos: linux
 goarch: amd64
 pkg: github.com/peteraba/binary4humans
-Benchmark_Encode_23-8                	10000000	       218 ns/op
-Benchmark_EncodeStrict_25-8          	 5000000	       239 ns/op
-Benchmark_Encode_238-8               	 1000000	      1737 ns/op
-Benchmark_EncodeStrict_240-8         	 1000000	      1854 ns/op
-Benchmark_Decode_23-8                	 5000000	       352 ns/op
-Benchmark_DecodeStrict_25-8          	 5000000	       346 ns/op
-Benchmark_Decode_238-8               	  500000	      2918 ns/op
-Benchmark_DecodeStrict_240-8         	  500000	      2855 ns/op
-Benchmark_IsWellFormattedBfh_238-8   	 1000000	      2373 ns/op
-Benchmark_IsAcceptableBfh_238-8      	 1000000	      2091 ns/op
-Benchmark_IsStrictBfh_240-8          	 1000000	      1490 ns/op
+Benchmark_EncodeStr_23-8             	10000000	       225 ns/op
+Benchmark_EncodeStrictStr_25-8       	10000000	       232 ns/op
+Benchmark_EncodeStr_238-8            	 1000000	      1929 ns/op
+Benchmark_EncodeStrictStr_240-8      	 1000000	      1824 ns/op
+Benchmark_DecodeStr_23-8             	 5000000	       359 ns/op
+Benchmark_DecodeStrictStr_25-8       	 5000000	       351 ns/op
+Benchmark_DecodeStr_238-8            	  500000	      2867 ns/op
+Benchmark_DecodeStrictStr_240-8      	  500000	      2892 ns/op
+Benchmark_IsWellFormattedBfh_238-8   	 1000000	      2305 ns/op
+Benchmark_IsAcceptableBfh_238-8      	 1000000	      1991 ns/op
+Benchmark_IsStrictBfh_240-8          	 1000000	      1474 ns/op
 Benchmark_Base32Encode_23-8          	20000000	        92.3 ns/op
 Benchmark_Base32Encode_20-8          	20000000	        81.7 ns/op
 Benchmark_Base32Encode_238-8         	 3000000	       547 ns/op
