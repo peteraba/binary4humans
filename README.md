@@ -12,7 +12,7 @@ This library aims to help displaying binary data to human users of systems, prim
 In purpose it is very similar to the standard [base32](https://golang.org/pkg/encoding/base32/) library, in some details 
 it is inspired by [Crockford's Base32 Encoding](https://www.crockford.com/wrmg/base32.html) definition.
 
-**WARNING!** Using `encoding/base32` is currently 2 to 5 times as fast both encoding and decoding. Keep that in mind when making decisions! (See benchmarks below)
+**WARNING!** Using `encoding/base32` is currently 2 to 5 times faster both encoding and decoding. Keep that in mind when making decisions! (See benchmarks below)
 
 
 Definition details
@@ -129,15 +129,16 @@ Extra
 `bfh` ships with altogether three validators.
 
  - For checking strings encoding random length binary data there are two validators:
-   1. a relaxed validator called `IsAcceptableBfh` which ignores dashes
-   1. and a validator called `IsWellFormattedBfh` which expects the dashes to be properly placed
- - For checking strings encoding in `strict` mode there's a validator called `IsStrictBfh` which also expects the dashes
+   1. a relaxed validator called `IsAcceptable` which ignores dashes
+   1. and a validator called `IsWellFormatted` which expects the dashes to be properly placed
+ - For checking strings encoding in `strict` mode there's a validator called `IsStrict` which also expects the dashes
  to be placed properly
 
 Benchmarks
 ----------
 
-As you can see the performance leaves a lot to be desired at the moment. Improvements are planned but not promised. Pull requests are welcome!
+As you can see the performance leaves a lot to be desired at the moment. There have been some performance optimization
+already and although further improvements are definitely possible, they may never happen. Of course pull requests are welcome!
 
 ```
 ➤ go test -bench=. -cpu=1
