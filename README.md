@@ -5,6 +5,8 @@ BFH - Binary 4 Humans
 [![GoReportCard](https://goreportcard.com/badge/github.com/peteraba/binary4humans?style=flat-square)](https://goreportcard.com/report/github.com/peteraba/binary4humans)
 [![Releases](https://img.shields.io/github/release/peteraba/binary4humans.svg?style=flat-square)](https://github.com/peteraba/binary4humans/releases)
 [![LICENSE](https://img.shields.io/github/license/peteraba/binary4humans.svg?style=flat-square)](https://github.com/peteraba/binary4humans/blob/master/LICENSE)
+[![Scrutinizer Coverage](https://img.shields.io/scrutinizer/coverage/g/peteraba/binary4humans.svg?style=flat-square)](https://scrutinizer-ci.com/g/peteraba/binary4humans/?branch=master)
+[![Scrutinizer Build](https://img.shields.io/scrutinizer/build/g/peteraba/binary4humans.svg?style=flat-square)](https://scrutinizer-ci.com/g/peteraba/binary4humans/inspections/bcc292f0-fdcb-4a74-9af5-292f59e7413b/log)
 
 This library aims to help displaying binary data to human users of systems, primary goal was displaying user tokens.
 In purpose it is very similar to the standard [base32](https://golang.org/pkg/encoding/base32/) library, in some details 

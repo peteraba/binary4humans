@@ -16,6 +16,9 @@ build:
               format: 'go-cc'
 
     analysis:
+      project_setup:
+        override:
+          - 'true'
       tests:
         before:
           - go get -u github.com/alecthomas/gometalinter
