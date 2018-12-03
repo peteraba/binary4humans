@@ -766,7 +766,7 @@ var (
 	validatedResult bool
 )
 
-func Benchmark_BfhEncode_23(b *testing.B) {
+func Benchmark_Encode_23(b *testing.B) {
 	var str string
 
 	for n := 0; n < b.N; n++ {
@@ -776,7 +776,7 @@ func Benchmark_BfhEncode_23(b *testing.B) {
 	encodeResult = str
 }
 
-func Benchmark_BfhEncodeStrict_25(b *testing.B) {
+func Benchmark_EncodeStrict_25(b *testing.B) {
 	var str string
 
 	for n := 0; n < b.N; n++ {
@@ -786,7 +786,7 @@ func Benchmark_BfhEncodeStrict_25(b *testing.B) {
 	encodeResult = str
 }
 
-func Benchmark_BfhEncode_238(b *testing.B) {
+func Benchmark_Encode_238(b *testing.B) {
 	var str string
 
 	for n := 0; n < b.N; n++ {
@@ -796,7 +796,7 @@ func Benchmark_BfhEncode_238(b *testing.B) {
 	encodeResult = str
 }
 
-func Benchmark_BfhEncodeStrict_240(b *testing.B) {
+func Benchmark_EncodeStrict_240(b *testing.B) {
 	var str string
 
 	for n := 0; n < b.N; n++ {
@@ -806,7 +806,7 @@ func Benchmark_BfhEncodeStrict_240(b *testing.B) {
 	encodeResult = str
 }
 
-func Benchmark_BfhDecode_23(b *testing.B) {
+func Benchmark_Decode_23(b *testing.B) {
 	var decodedData []byte
 
 	for n := 0; n < b.N; n++ {
@@ -816,7 +816,7 @@ func Benchmark_BfhDecode_23(b *testing.B) {
 	decodedResult = decodedData
 }
 
-func Benchmark_BfhDecodeStrict_25(b *testing.B) {
+func Benchmark_DecodeStrict_25(b *testing.B) {
 	var decodedData []byte
 
 	for n := 0; n < b.N; n++ {
@@ -826,7 +826,7 @@ func Benchmark_BfhDecodeStrict_25(b *testing.B) {
 	decodedResult = decodedData
 }
 
-func Benchmark_BfhDecode_238(b *testing.B) {
+func Benchmark_Decode_238(b *testing.B) {
 	var decodedData []byte
 
 	for n := 0; n < b.N; n++ {
@@ -836,7 +836,7 @@ func Benchmark_BfhDecode_238(b *testing.B) {
 	decodedResult = decodedData
 }
 
-func Benchmark_BfhDecodeStrict_240(b *testing.B) {
+func Benchmark_DecodeStrict_240(b *testing.B) {
 	var decodedData []byte
 
 	for n := 0; n < b.N; n++ {
@@ -866,7 +866,7 @@ func Benchmark_IsAcceptableBfh_238(b *testing.B) {
 	validatedResult = validatedData
 }
 
-func Benchmark_BfhIsStrictBfh_240(b *testing.B) {
+func Benchmark_IsStrictBfh_240(b *testing.B) {
 	var validatedData bool
 
 	for n := 0; n < b.N; n++ {
