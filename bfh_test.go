@@ -342,7 +342,7 @@ func Test_IsWellFormatted(t *testing.T) {
 			{
 				Name:           "empty",
 				String:         "0-",
-				ExpectedResult: false,
+				ExpectedResult: true,
 			},
 			{
 				Name:           "0x7e",
@@ -415,7 +415,7 @@ func Test_IsWellFormatted(t *testing.T) {
 				ExpectedResult: false,
 			},
 			{
-				Name:           "fishy ending",
+				Name:           "fishy ending #2",
 				String:         "4-zwga-e07x-24a0-0000",
 				ExpectedResult: false,
 			},
@@ -615,7 +615,7 @@ func Test_IsStrictBfh(t *testing.T) {
 			{
 				Name:           "empty",
 				String:         "",
-				ExpectedResult: false,
+				ExpectedResult: true,
 			},
 			{
 				Name:           "0x7e",
@@ -757,12 +757,13 @@ var (
 		153, 101, 7, 13, 233, 124, 31, 11, 161, 191,
 		190, 236, 128, 176, 165, 83, 93, 170, 195, 236,
 	}
-	encodedData240 = "gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y-ecbe-t9a2-cbs9-87e8-r2k4-j6ms-hvch-h4sf-q213-eynh-rcm0-csq4-vqy6-2g3p-t3nq-bpvr-asvq-jad4-z4kn-pj45-hyer-8033-dpvy-n90m-0rzs-r3sm-eqaq-7m3a-4w9f-h7dn-bn0s-a6cc-dt5v-tta0-rgz0-cfy2-fam3-yytq-sz60-53wf-kgbw-bp2b-wwyp-hjrr-rx3g-vwv1-7th6-7pqg-eb7k-nhpr-tmx6-0323-9spg-tsey-v19j-a4td-ezb5-z7kz-fn1j-ctqy-14k6-sekx-7exp-1jsp-df2z-n1tt-nyfj-jkj1-8yzf-96p6-t9nh-21jv-dd2c-64py-tke0-8dy4-kq0k-mexp-k5jg-e3f9-fgfg-q8dz-qvp8-1c55-adet-ngzc"
-	encodedData238 = "2-gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y-ecbe-t9a2-cbs9-87e8-r2k4-j6ms-hvch-h4sf-q213-eynh-rcm0-csq4-vqy6-2g3p-t3nq-bpvr-asvq-jad4-z4kn-pj45-hyer-8033-dpvy-n90m-0rzs-r3sm-eqaq-7m3a-4w9f-h7dn-bn0s-a6cc-dt5v-tta0-rgz0-cfy2-fam3-yytq-sz60-53wf-kgbw-bp2b-wwyp-hjrr-rx3g-vwv1-7th6-7pqg-eb7k-nhpr-tmx6-0323-9spg-tsey-v19j-a4td-ezb5-z7kz-fn1j-ctqy-14k6-sekx-7exp-1jsp-df2z-n1tt-nyfj-jkj1-8yzf-96p6-t9nh-21jv-dd2c-64py-tke0-8dy4-kq0k-mexp-k5jg-e3f9-fgfg-q8dz-qvp8-1c55-adet-m000"
-	encodedData25  = "gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y"
-	encodedData23  = "2-gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w000"
-	decodedResult  []byte
-	encodeResult   string
+	encodedData240  = "gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y-ecbe-t9a2-cbs9-87e8-r2k4-j6ms-hvch-h4sf-q213-eynh-rcm0-csq4-vqy6-2g3p-t3nq-bpvr-asvq-jad4-z4kn-pj45-hyer-8033-dpvy-n90m-0rzs-r3sm-eqaq-7m3a-4w9f-h7dn-bn0s-a6cc-dt5v-tta0-rgz0-cfy2-fam3-yytq-sz60-53wf-kgbw-bp2b-wwyp-hjrr-rx3g-vwv1-7th6-7pqg-eb7k-nhpr-tmx6-0323-9spg-tsey-v19j-a4td-ezb5-z7kz-fn1j-ctqy-14k6-sekx-7exp-1jsp-df2z-n1tt-nyfj-jkj1-8yzf-96p6-t9nh-21jv-dd2c-64py-tke0-8dy4-kq0k-mexp-k5jg-e3f9-fgfg-q8dz-qvp8-1c55-adet-ngzc"
+	encodedData238  = "2-gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y-ecbe-t9a2-cbs9-87e8-r2k4-j6ms-hvch-h4sf-q213-eynh-rcm0-csq4-vqy6-2g3p-t3nq-bpvr-asvq-jad4-z4kn-pj45-hyer-8033-dpvy-n90m-0rzs-r3sm-eqaq-7m3a-4w9f-h7dn-bn0s-a6cc-dt5v-tta0-rgz0-cfy2-fam3-yytq-sz60-53wf-kgbw-bp2b-wwyp-hjrr-rx3g-vwv1-7th6-7pqg-eb7k-nhpr-tmx6-0323-9spg-tsey-v19j-a4td-ezb5-z7kz-fn1j-ctqy-14k6-sekx-7exp-1jsp-df2z-n1tt-nyfj-jkj1-8yzf-96p6-t9nh-21jv-dd2c-64py-tke0-8dy4-kq0k-mexp-k5jg-e3f9-fgfg-q8dz-qvp8-1c55-adet-m000"
+	encodedData25   = "gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w56y"
+	encodedData23   = "2-gqps-xdew-rq21-v2e7-74ya-r1j6-92wb-m4n9-fwwn-w000"
+	decodedResult   []byte
+	encodeResult    string
+	validatedResult bool
 )
 
 func Benchmark_BfhEncode_23(b *testing.B) {
@@ -843,6 +844,66 @@ func Benchmark_BfhDecodeStrict_240(b *testing.B) {
 	}
 
 	decodedResult = decodedData
+}
+
+func Benchmark_IsWellFormattedBfh_238(b *testing.B) {
+	var validatedData bool
+
+	for n := 0; n < b.N; n++ {
+		validatedData = IsWellFormattedBfh(encodedData238)
+	}
+
+	validatedResult = validatedData
+}
+
+func Benchmark_IsWellFormattedOldBfh_238(b *testing.B) {
+	var validatedData bool
+
+	for n := 0; n < b.N; n++ {
+		validatedData = IsWellFormattedOldBfh(encodedData238)
+	}
+
+	validatedResult = validatedData
+}
+
+func Benchmark_IsAcceptableBfh_238(b *testing.B) {
+	var validatedData bool
+
+	for n := 0; n < b.N; n++ {
+		validatedData = IsAcceptableBfh(encodedData238)
+	}
+
+	validatedResult = validatedData
+}
+
+func Benchmark_IsAcceptableOldBfh_238(b *testing.B) {
+	var validatedData bool
+
+	for n := 0; n < b.N; n++ {
+		validatedData = IsAcceptableOldBfh(encodedData238)
+	}
+
+	validatedResult = validatedData
+}
+
+func Benchmark_BfhIsStrictBfh_240(b *testing.B) {
+	var validatedData bool
+
+	for n := 0; n < b.N; n++ {
+		validatedData = IsStrictBfh(encodedData240)
+	}
+
+	validatedResult = validatedData
+}
+
+func Benchmark_BfhIsStrictOldBfh_240(b *testing.B) {
+	var validatedData bool
+
+	for n := 0; n < b.N; n++ {
+		validatedData = IsStrictOldBfh(encodedData240)
+	}
+
+	validatedResult = validatedData
 }
 
 func Benchmark_Base32Encode_23(b *testing.B) {

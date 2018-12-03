@@ -19,6 +19,7 @@ const (
 	standardBfhRegexString   = "^[0-4]\\-([0123456789abcdefghjkmnpqrstvwxyz]{4}\\-)*$"
 	acceptableBfhRegexString = "^[0-4]([0123456789abcdefghjkmnpqrstvwxyz]{4})*$"
 	strictBfhRegexString     = "^([0123456789abcdefghjkmnpqrstvwxyz]{4}\\-)*$"
+	separator                = '-'
 )
 
 var (
@@ -27,14 +28,6 @@ var (
 	standardBfhRegex   = regexp.MustCompile(standardBfhRegexString)
 	acceptableBfhRegex = regexp.MustCompile(acceptableBfhRegexString)
 	strictBfhRegex     = regexp.MustCompile(strictBfhRegexString)
-	padding1           = []string{"0", "8", "g", "r"}
-	padding2           = []string{"0", "2", "4", "6", "8", "a", "c", "e", "g", "j", "m", "p", "r", "t", "w", "y"}
-	padding3           = []string{"0", "g"}
-	padding4           = []string{"0", "4", "8", "c", "g", "m", "r", "w"}
-	paddingMap1        map[string]string
-	paddingMap2        map[string]string
-	paddingMap3        map[string]string
-	paddingMap4        map[string]string
 )
 
 // nolint
@@ -104,10 +97,37 @@ func getDigit(r uint8) (byte, error) {
 		return 30, nil
 	case 'z':
 		return 31, nil
-		// 0123456789abcdefghjkmnpqrstvwxyz
 	}
 
 	return 0, errors.New(errMsgContainsInvalidCharacter)
+}
+
+// removeByte is used instead of strings.Replace because it is much faster
+func removeByte(str string, ch byte) string {
+	dashCount := 0
+	for i := 0; i < len(str); i++ {
+		if str[i] == ch {
+			dashCount++
+		}
+	}
+
+	if dashCount == 0 {
+		return str
+	}
+
+	b := make([]byte, len(str)-dashCount)
+
+	count := 0
+	for i := 0; i < len(str); i++ {
+		if str[i] == ch {
+			continue
+		}
+
+		b[count] = str[i]
+		count++
+	}
+
+	return string(b)
 }
 
 // Encode encodes binary data into a human readable string
@@ -154,11 +174,11 @@ func newNormalResult(byteLength int) []byte {
 		s1[i] = byte('0')
 	}
 	for i := 6; i < b32Length; i += 5 {
-		s1[i] = byte('-')
+		s1[i] = byte(separator)
 	}
 
 	s1[0] = byte(b32padding + '0')
-	s1[1] = byte('-')
+	s1[1] = byte(separator)
 
 	return s1
 }
@@ -176,7 +196,7 @@ func newStrictEncodeResult(byteLength int) []byte {
 		s1[i] = byte('0')
 	}
 	for i := 4; i < b32Length; i += 5 {
-		s1[i] = byte('-')
+		s1[i] = byte(separator)
 	}
 
 	return s1
@@ -238,7 +258,7 @@ func readByte(b []byte, readBits int) byte {
 // Decode decodes a human readable string into a binary data
 func Decode(str string) ([]byte, error) {
 	// dashes are not needed, they only help readability
-	str = strings.Replace(str, "-", "", -1)
+	str = removeByte(str, separator)
 
 	padding, err := getDigit(str[0])
 	if err != nil {
@@ -269,7 +289,7 @@ func Decode(str string) ([]byte, error) {
 // DecodeStrict decodes a string into binary data without using any padding
 func DecodeStrict(str string) ([]byte, error) {
 	// dashes are not needed, they only help readability
-	str = strings.Replace(str, "-", "", -1)
+	str = removeByte(str, separator)
 
 	if len(str)%4 != 0 {
 		return nil, errors.New(errMsgStrictInvalid)
@@ -297,7 +317,7 @@ func decode(str string) ([]byte, error) {
 
 		data[byteIndex] |= firstByte
 
-		if secondByte > 0 && len(data) > byteIndex+1 {
+		if secondByte > 0 {
 			data[byteIndex+1] |= secondByte
 		}
 	}
@@ -317,6 +337,26 @@ func splitByte(charValue uint8, stringIndex int) (byte, byte) {
 
 // IsWellFormattedBfh returns true if the string is a well-formatted string
 func IsWellFormattedBfh(str string) bool {
+	if len(str) < 2 {
+		return false
+	}
+
+	ch, err := getDigit(str[0])
+	if err != nil || ch > 4 {
+		return false
+	}
+
+	if !IsStrictBfh(str[2:]) {
+		return false
+	}
+
+	str = removeByte(str, separator)
+
+	return isPaddingCorrect(str)
+}
+
+// IsWellFormattedOldBfh returns true if the string is a well-formatted string
+func IsWellFormattedOldBfh(str string) bool {
 	fixedStr := str + "-"
 
 	if !standardBfhRegex.MatchString(fixedStr) {
@@ -330,6 +370,37 @@ func IsWellFormattedBfh(str string) bool {
 
 // IsAcceptableBfh returns true if bfh can accept it for decoding
 func IsAcceptableBfh(str string) bool {
+	fixedStr := removeByte(str, separator)
+
+	if len(str) == 0 {
+		return false
+	}
+
+	firstCh, err := getDigit(str[0])
+	if err != nil || firstCh > 4 {
+		return false
+	}
+
+	if !validDigitsOnly(fixedStr) {
+		return false
+	}
+
+	return isPaddingCorrect(fixedStr)
+}
+
+func validDigitsOnly(str string) bool {
+	for i := 0; i < len(str); i++ {
+		_, err := getDigit(str[i])
+		if err != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
+// IsAcceptableOldBfh returns true if bfh can accept it for decoding
+func IsAcceptableOldBfh(str string) bool {
 	fixedStr := strings.Replace(str, "-", "", -1)
 
 	if !acceptableBfhRegex.MatchString(fixedStr) {
@@ -371,17 +442,7 @@ func isPaddingCorrect1(str string) bool {
 		return false
 	}
 
-	if paddingMap1 == nil {
-		paddingMap1 = map[string]string{}
-
-		for _, v := range padding1 {
-			paddingMap1[v] = v
-		}
-	}
-
-	_, ok := paddingMap1[str[l-2:l-1]]
-
-	return ok
+	return isValidPaddingEnding1(str[l-2])
 }
 
 func isPaddingCorrect2(str string) bool {
@@ -391,17 +452,7 @@ func isPaddingCorrect2(str string) bool {
 		return false
 	}
 
-	if paddingMap2 == nil {
-		paddingMap2 = map[string]string{}
-
-		for _, v := range padding2 {
-			paddingMap2[v] = v
-		}
-	}
-
-	_, ok := paddingMap2[str[l-4:l-3]]
-
-	return ok
+	return isValidPaddingEnding2(str[l-4])
 }
 
 func isPaddingCorrect3(str string) bool {
@@ -411,17 +462,7 @@ func isPaddingCorrect3(str string) bool {
 		return false
 	}
 
-	if paddingMap3 == nil {
-		paddingMap3 = map[string]string{}
-
-		for _, v := range padding3 {
-			paddingMap3[v] = v
-		}
-	}
-
-	_, ok := paddingMap3[str[l-5:l-4]]
-
-	return ok
+	return isValidPaddingEnding3(str[l-5])
 }
 
 func isPaddingCorrect4(str string) bool {
@@ -431,21 +472,121 @@ func isPaddingCorrect4(str string) bool {
 		return false
 	}
 
-	if paddingMap4 == nil {
-		paddingMap4 = map[string]string{}
+	return isValidPaddingEnding4(str[l-7])
+}
 
-		for _, v := range padding4 {
-			paddingMap4[v] = v
-		}
+// nolint
+func isValidPaddingEnding1(ending byte) bool {
+	switch ending {
+	case '0':
+		return true
+	case '8':
+		return true
+	case 'g':
+		return true
+	case 'r':
+		return true
 	}
 
-	_, ok := paddingMap4[str[l-7:l-6]]
+	return false
+}
 
-	return ok
+// nolint
+func isValidPaddingEnding2(ending byte) bool {
+	switch ending {
+	case '0':
+		return true
+	case '2':
+		return true
+	case '4':
+		return true
+	case '6':
+		return true
+	case '8':
+		return true
+	case 'a':
+		return true
+	case 'c':
+		return true
+	case 'e':
+		return true
+	case 'g':
+		return true
+	case 'j':
+		return true
+	case 'm':
+		return true
+	case 'p':
+		return true
+	case 'r':
+		return true
+	case 't':
+		return true
+	case 'w':
+		return true
+	case 'y':
+		return true
+	}
+
+	return false
+}
+
+// nolint
+func isValidPaddingEnding3(ending byte) bool {
+	return ending == '0' || ending == 'g'
+}
+
+// nolint
+func isValidPaddingEnding4(ending byte) bool {
+	switch ending {
+	case '0':
+		return true
+	case '4':
+		return true
+	case '8':
+		return true
+	case 'c':
+		return true
+	case 'g':
+		return true
+	case 'm':
+		return true
+	case 'r':
+		return true
+	case 'w':
+		return true
+	}
+
+	return false
 }
 
 // IsStrictBfh returns true if the string is strict-compatible
 func IsStrictBfh(str string) bool {
+	if len(str) > 0 && len(str)%5 != 4 {
+		return false
+	}
+
+	for i := 0; i < len(str); i++ {
+		fifth := (i%5 == 4)
+
+		if fifth {
+			if str[i] != separator {
+				return false
+			}
+			continue
+		}
+
+		_, err := getDigit(str[i])
+		if err != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
+// IsStrictOldBfh returns true if the string is strict-compatible
+func IsStrictOldBfh(str string) bool {
 	fixedStr := str + "-"
 
 	return strictBfhRegex.MatchString(fixedStr)
