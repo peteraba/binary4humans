@@ -856,16 +856,6 @@ func Benchmark_IsWellFormattedBfh_238(b *testing.B) {
 	validatedResult = validatedData
 }
 
-func Benchmark_IsWellFormattedOldBfh_238(b *testing.B) {
-	var validatedData bool
-
-	for n := 0; n < b.N; n++ {
-		validatedData = IsWellFormattedOldBfh(encodedData238)
-	}
-
-	validatedResult = validatedData
-}
-
 func Benchmark_IsAcceptableBfh_238(b *testing.B) {
 	var validatedData bool
 
@@ -876,31 +866,11 @@ func Benchmark_IsAcceptableBfh_238(b *testing.B) {
 	validatedResult = validatedData
 }
 
-func Benchmark_IsAcceptableOldBfh_238(b *testing.B) {
-	var validatedData bool
-
-	for n := 0; n < b.N; n++ {
-		validatedData = IsAcceptableOldBfh(encodedData238)
-	}
-
-	validatedResult = validatedData
-}
-
 func Benchmark_BfhIsStrictBfh_240(b *testing.B) {
 	var validatedData bool
 
 	for n := 0; n < b.N; n++ {
 		validatedData = IsStrictBfh(encodedData240)
-	}
-
-	validatedResult = validatedData
-}
-
-func Benchmark_BfhIsStrictOldBfh_240(b *testing.B) {
-	var validatedData bool
-
-	for n := 0; n < b.N; n++ {
-		validatedData = IsStrictOldBfh(encodedData240)
 	}
 
 	validatedResult = validatedData

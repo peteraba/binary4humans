@@ -2,8 +2,6 @@ package bfh
 
 import (
 	"errors"
-	"regexp"
-	"strings"
 )
 
 const (
@@ -16,18 +14,12 @@ const (
 	errMsgContainsInvalidCharacter = "string contains invalid character: %s"
 
 	// note that valid encoded strings will not end in a hyphen, it needs to be added when validating
-	standardBfhRegexString   = "^[0-4]\\-([0123456789abcdefghjkmnpqrstvwxyz]{4}\\-)*$"
-	acceptableBfhRegexString = "^[0-4]([0123456789abcdefghjkmnpqrstvwxyz]{4})*$"
-	strictBfhRegexString     = "^([0123456789abcdefghjkmnpqrstvwxyz]{4}\\-)*$"
-	separator                = '-'
+	separator = '-'
 )
 
 var (
-	encodeMasks        = []uint8{0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01}
-	decodeMasks        = []uint8{0x1, 0x3, 0x7, 0xf}
-	standardBfhRegex   = regexp.MustCompile(standardBfhRegexString)
-	acceptableBfhRegex = regexp.MustCompile(acceptableBfhRegexString)
-	strictBfhRegex     = regexp.MustCompile(strictBfhRegexString)
+	encodeMasks = []uint8{0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01}
+	decodeMasks = []uint8{0x1, 0x3, 0x7, 0xf}
 )
 
 // nolint
@@ -355,19 +347,6 @@ func IsWellFormattedBfh(str string) bool {
 	return isPaddingCorrect(str)
 }
 
-// IsWellFormattedOldBfh returns true if the string is a well-formatted string
-func IsWellFormattedOldBfh(str string) bool {
-	fixedStr := str + "-"
-
-	if !standardBfhRegex.MatchString(fixedStr) {
-		return false
-	}
-
-	fixedStr = strings.Replace(fixedStr, "-", "", -1)
-
-	return isPaddingCorrect(fixedStr)
-}
-
 // IsAcceptableBfh returns true if bfh can accept it for decoding
 func IsAcceptableBfh(str string) bool {
 	fixedStr := removeByte(str, separator)
@@ -397,17 +376,6 @@ func validDigitsOnly(str string) bool {
 	}
 
 	return true
-}
-
-// IsAcceptableOldBfh returns true if bfh can accept it for decoding
-func IsAcceptableOldBfh(str string) bool {
-	fixedStr := strings.Replace(str, "-", "", -1)
-
-	if !acceptableBfhRegex.MatchString(fixedStr) {
-		return false
-	}
-
-	return isPaddingCorrect(fixedStr)
 }
 
 func isPaddingCorrect(str string) bool {
@@ -583,11 +551,4 @@ func IsStrictBfh(str string) bool {
 	}
 
 	return true
-}
-
-// IsStrictOldBfh returns true if the string is strict-compatible
-func IsStrictOldBfh(str string) bool {
-	fixedStr := str + "-"
-
-	return strictBfhRegex.MatchString(fixedStr)
 }
