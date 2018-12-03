@@ -12,7 +12,8 @@ This library aims to help displaying binary data to human users of systems, prim
 In purpose it is very similar to the standard [base32](https://golang.org/pkg/encoding/base32/) library, in some details 
 it is inspired by [Crockford's Base32 Encoding](https://www.crockford.com/wrmg/base32.html) definition.
 
-**WARNING!** Using `encoding/base32` library is currently about 30 to 80 times faster than `bfh`, so keep that in mind when making decisions! (See benchmarks below)
+**WARNING!** Using `encoding/base32` library is currently about 2 to 4 times faster than `bfh` when encoding
+and 4-6 times faster when decoding. Keep that in mind when making decisions! (See benchmarks below)
 
 
 Definition details
@@ -149,22 +150,22 @@ As you can see the performance leaves a lot to be desired at the moment. Improve
 goos: linux
 goarch: amd64
 pkg: github.com/peteraba/binary4humans
-Benchmark_BfhEncode_23        	 5000000	       314 ns/op
-Benchmark_BfhEncodeStrict_25  	 5000000	       277 ns/op
-Benchmark_BfhEncode_238       	 1000000	      2219 ns/op
-Benchmark_BfhEncodeStrict_240 	  500000	      2111 ns/op
-Benchmark_BfhDecode_23        	 2000000	       928 ns/op
-Benchmark_BfhDecodeStrict_25  	 1000000	      1984 ns/op
-Benchmark_BfhDecode_238       	  200000	      9202 ns/op
-Benchmark_BfhDecodeStrict_240 	  100000	     19667 ns/op
-Benchmark_Base32Encode_23     	20000000	       110 ns/op
-Benchmark_Base32Encode_20     	20000000	        95.7 ns/op
-Benchmark_Base32Encode_238    	 3000000	       561 ns/op
-Benchmark_Base32Encode_240    	 3000000	       562 ns/op
-Benchmark_Base32Decode_23     	 5000000	       280 ns/op
-Benchmark_Base32Decode_20     	10000000	       202 ns/op
-Benchmark_Base32Decode_238    	 1000000	      2049 ns/op
-Benchmark_Base32Decode_240    	 1000000	      2050 ns/op
+Benchmark_BfhEncode_23        	10000000	       235 ns/op
+Benchmark_BfhEncodeStrict_25  	 5000000	       241 ns/op
+Benchmark_BfhEncode_238       	 1000000	      1815 ns/op
+Benchmark_BfhEncodeStrict_240 	 1000000	      1704 ns/op
+Benchmark_BfhDecode_23        	 2000000	       941 ns/op
+Benchmark_BfhDecodeStrict_25  	 2000000	       903 ns/op
+Benchmark_BfhDecode_238       	  200000	     10574 ns/op
+Benchmark_BfhDecodeStrict_240 	  200000	     10483 ns/op
+Benchmark_Base32Encode_23     	20000000	       112 ns/op
+Benchmark_Base32Encode_20     	20000000	        97.5 ns/op
+Benchmark_Base32Encode_238    	 3000000	       565 ns/op
+Benchmark_Base32Encode_240    	 3000000	       570 ns/op
+Benchmark_Base32Decode_23     	 5000000	       281 ns/op
+Benchmark_Base32Decode_20     	10000000	       207 ns/op
+Benchmark_Base32Decode_238    	 1000000	      2028 ns/op
+Benchmark_Base32Decode_240    	 1000000	      2049 ns/op
 PASS
 ok  	github.com/peteraba/binary4humans	28.796s
 ```

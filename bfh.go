@@ -2,7 +2,6 @@ package bfh
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -25,7 +24,6 @@ const (
 var (
 	encodeMasks        = []uint8{0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01}
 	decodeMasks        = []uint8{0x1, 0x3, 0x7, 0xf}
-	digitMap           map[string]uint8
 	standardBfhRegex   = regexp.MustCompile(standardBfhRegexString)
 	acceptableBfhRegex = regexp.MustCompile(acceptableBfhRegexString)
 	strictBfhRegex     = regexp.MustCompile(strictBfhRegexString)
@@ -39,11 +37,77 @@ var (
 	paddingMap4        map[string]string
 )
 
-func init() {
-	digitMap = map[string]uint8{}
-	for i := 0; i < len(digits); i++ {
-		digitMap[digits[i:i+1]] = uint8(i)
+// nolint
+func getDigit(r uint8) (byte, error) {
+	switch r {
+	case '0':
+		return 0, nil
+	case '1':
+		return 1, nil
+	case '2':
+		return 2, nil
+	case '3':
+		return 3, nil
+	case '4':
+		return 4, nil
+	case '5':
+		return 5, nil
+	case '6':
+		return 6, nil
+	case '7':
+		return 7, nil
+	case '8':
+		return 8, nil
+	case '9':
+		return 9, nil
+	case 'a':
+		return 10, nil
+	case 'b':
+		return 11, nil
+	case 'c':
+		return 12, nil
+	case 'd':
+		return 13, nil
+	case 'e':
+		return 14, nil
+	case 'f':
+		return 15, nil
+	case 'g':
+		return 16, nil
+	case 'h':
+		return 17, nil
+	case 'j':
+		return 18, nil
+	case 'k':
+		return 19, nil
+	case 'm':
+		return 20, nil
+	case 'n':
+		return 21, nil
+	case 'p':
+		return 22, nil
+	case 'q':
+		return 23, nil
+	case 'r':
+		return 24, nil
+	case 's':
+		return 25, nil
+	case 't':
+		return 26, nil
+	case 'v':
+		return 27, nil
+	case 'w':
+		return 28, nil
+	case 'x':
+		return 29, nil
+	case 'y':
+		return 30, nil
+	case 'z':
+		return 31, nil
+		// 0123456789abcdefghjkmnpqrstvwxyz
 	}
+
+	return 0, errors.New(errMsgContainsInvalidCharacter)
 }
 
 // Encode encodes binary data into a human readable string
@@ -176,8 +240,11 @@ func Decode(str string) ([]byte, error) {
 	// dashes are not needed, they only help readability
 	str = strings.Replace(str, "-", "", -1)
 
-	padding, ok := digitMap[str[0:1]]
-	if !ok || padding > 4 {
+	padding, err := getDigit(str[0])
+	if err != nil {
+		return nil, err
+	}
+	if padding > 4 {
 		return nil, errors.New(errMsgPaddingNotBetween0and4)
 	}
 
@@ -219,9 +286,9 @@ func decode(str string) ([]byte, error) {
 	data := make([]byte, len(str)*5/8)
 
 	for i := 0; i < len(str); i++ {
-		charValue, ok := digitMap[str[i:i+1]]
-		if !ok {
-			return nil, fmt.Errorf(errMsgContainsInvalidCharacter, str[i:i+1])
+		charValue, err := getDigit(str[i])
+		if err != nil {
+			return nil, err
 		}
 
 		byteIndex := i * 5 / 8
