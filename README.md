@@ -31,29 +31,24 @@ length dividable by 5 but then the padding is no longer used.
 
 Dashes are generated automatically during encoding, but ignored completely during decoding.
 
-### Empty byte arrays
-
-Normally empty byte arrays should translate to `0-`, but was decided to be represented by an empty string instead. `0-` 
-will still decode to an empty byte array.
-
 ### 
 
-Example
--------
+Examples
+--------
 
 ### Example 1
 
 *Binary data:* `[167, 13]` = `[10100111, 00001101]`  
 
-*Encoded string:* "3-mw6g-0000"
+*Encoded string:* `3-mw6g-0000`
 
 ### Example 2
 
 *Binary data:* `[167, 13, 0, 0, 0]` = `[10100111, 00001101, 00000000, 00000000, 00000000]`  
 
-*Encoded string:* "0-mw6g-0000"
+*Encoded string:* `0-mw6g-0000`
 
-*Strictly encoded string:* "mw6g-0000"
+*Strictly encoded string:* `mw6g-0000`
 
 
 Note that the padding here is important, because without that, we'd decode the encoded string to `[167, 13, 0, 0, 0]`
