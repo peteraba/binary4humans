@@ -2,7 +2,6 @@ package bfh
 
 import (
 	"crypto/rand"
-	"encoding/base32"
 	"fmt"
 	"testing"
 
@@ -876,86 +875,136 @@ func Benchmark_IsStrictBfh_240(b *testing.B) {
 	validatedResult = validatedData
 }
 
-func Benchmark_Base32Encode_23(b *testing.B) {
-	var str string
-
-	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data[:23])
-	}
-
-	encodeResult = str
-}
-
-func Benchmark_Base32Encode_20(b *testing.B) {
-	var str string
-
-	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data[:20])
-	}
-
-	encodeResult = str
-}
-
-func Benchmark_Base32Encode_238(b *testing.B) {
-	var str string
-
-	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data[:238])
-	}
-
-	encodeResult = str
-}
-
-func Benchmark_Base32Encode_240(b *testing.B) {
-	var str string
-
-	for n := 0; n < b.N; n++ {
-		str = base32.StdEncoding.EncodeToString(data[:240])
-	}
-
-	encodeResult = str
-}
-
-func Benchmark_Base32Decode_23(b *testing.B) {
-	var decodedData []byte
-	var str = base32.StdEncoding.EncodeToString(data[:23])
-
-	for n := 0; n < b.N; n++ {
-		decodedData, _ = base32.StdEncoding.DecodeString(str)
-	}
-
-	decodedResult = decodedData
-}
-
-func Benchmark_Base32Decode_20(b *testing.B) {
-	var decodedData []byte
-	var str = base32.StdEncoding.EncodeToString(data[:20])
-
-	for n := 0; n < b.N; n++ {
-		decodedData, _ = base32.StdEncoding.DecodeString(str)
-	}
-
-	decodedResult = decodedData
-}
-
-func Benchmark_Base32Decode_238(b *testing.B) {
-	var decodedData []byte
-	var str = base32.StdEncoding.EncodeToString(data[:238])
-
-	for n := 0; n < b.N; n++ {
-		decodedData, _ = base32.StdEncoding.DecodeString(str)
-	}
-
-	decodedResult = decodedData
-}
-
-func Benchmark_Base32Decode_240(b *testing.B) {
-	var decodedData []byte
-	var str = base32.StdEncoding.EncodeToString(data[:240])
-
-	for n := 0; n < b.N; n++ {
-		decodedData, _ = base32.StdEncoding.DecodeString(str)
-	}
-
-	decodedResult = decodedData
-}
+// func Benchmark_Base32Encode_23(b *testing.B) {
+// 	var str string
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(data[:23])
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Encode_20(b *testing.B) {
+// 	var str string
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(data[:20])
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Encode_238(b *testing.B) {
+// 	var str string
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(data[:238])
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Encode_240(b *testing.B) {
+// 	var str string
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(data[:240])
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Decode_23(b *testing.B) {
+// 	var decodedData []byte
+// 	var str = base32.StdEncoding.EncodeToString(data[:23])
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
+//
+// func Benchmark_Base32Decode_20(b *testing.B) {
+// 	var decodedData []byte
+// 	var str = base32.StdEncoding.EncodeToString(data[:20])
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
+//
+// func Benchmark_Base32Decode_238(b *testing.B) {
+// 	var decodedData []byte
+// 	var str = base32.StdEncoding.EncodeToString(data[:238])
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
+//
+// func Benchmark_Base32Decode_240(b *testing.B) {
+// 	var decodedData []byte
+// 	var str = base32.StdEncoding.EncodeToString(data[:240])
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
+//
+// func Benchmark_EncodeStrict_48000(b *testing.B) {
+// 	var str string
+// 	var randData = make([]byte, 48000)
+// 	rand.Read(randData)
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str, _ = EncodeStrict(randData)
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_DecodeStrict_48000(b *testing.B) {
+// 	var decodedData []byte
+// 	var randData = make([]byte, 48000)
+// 	rand.Read(randData)
+// 	str, _ := Encode(randData)
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = Decode(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
+//
+// func Benchmark_Base32Encode_48000(b *testing.B) {
+// 	var str string
+// 	var randData = make([]byte, 48000)
+// 	rand.Read(randData)
+//
+// 	for n := 0; n < b.N; n++ {
+// 		str = base32.StdEncoding.EncodeToString(randData)
+// 	}
+//
+// 	encodeResult = str
+// }
+//
+// func Benchmark_Base32Decode_48000(b *testing.B) {
+// 	var decodedData []byte
+// 	var randData = make([]byte, 48000)
+// 	rand.Read(randData)
+// 	str := base32.StdEncoding.EncodeToString(randData)
+//
+// 	for n := 0; n < b.N; n++ {
+// 		decodedData, _ = base32.StdEncoding.DecodeString(str)
+// 	}
+//
+// 	decodedResult = decodedData
+// }
