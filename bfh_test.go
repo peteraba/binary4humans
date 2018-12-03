@@ -277,6 +277,42 @@ func Test_Decode(t *testing.T) {
 		}
 	})
 
+	t.Run("fail", func(t *testing.T) {
+		tests := []struct {
+			Name           string
+			String         string
+		}{
+			{
+				Name:           "invalid padding character",
+				String:         "o-zwga-e07x-2400-0000",
+			},
+			{
+				Name:           "invalid padding",
+				String:         "7-zwga-e07x-2400-0000",
+			},
+			{
+				Name:           "invalid character",
+				String:         "4-ouga-e07x-2400-0000",
+			},
+			{
+				Name:           "fail wrong padding",
+				String:         "6-zwga-e07x-2400-0000",
+			},
+			{
+				Name:           "fail wrong length",
+				String:         "0-zwga-e0",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				_, err := Decode(tt.String)
+
+				assert.Error(t, err, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
 	t.Run("random success", func(t *testing.T) {
 		tests := []struct {
 			Name   string
@@ -317,372 +353,715 @@ func Test_Decode(t *testing.T) {
 			})
 		}
 	})
-
-	t.Run("fail wrong padding", func(t *testing.T) {
-		_, err := DecodeStrict("6-zwga-e07x-2400-0000")
-
-		assert.Error(t, err)
-	})
-
-	t.Run("fail wrong length", func(t *testing.T) {
-		_, err := DecodeStrict("0-zwga-e0")
-
-		assert.Error(t, err)
-	})
 }
 
-func Test_IsWellFormatted(t *testing.T) {
+func Test_DecodeStrict(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		tests := []struct {
 			Name           string
 			String         string
-			ExpectedResult bool
-		}{
-			{
-				Name:           "empty",
-				String:         "0-",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "0x7e",
-				String:         "4-fr00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "0xff",
-				String:         "4-zw00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "0xff",
-				String:         "4-zw00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "zeros",
-				String:         "0-0000-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "mod5 slice length of 0xff",
-				String:         "0-zzzz-zzzz",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "6 bytes long 0xff",
-				String:         "4-zzzz-zzzz-zw00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "4 bytes long 0xff",
-				String:         "1-zzzz-zzr0",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "somewhat random numbers",
-				String:         "4-zwga-e07x-2400-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "invalid empty",
-				String:         "a-",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "invalid empty 2",
-				String:         "",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "wrong length",
-				String:         "4-zwg",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "extra dash at the end",
-				String:         "4-zwga-e07x-2400-0000-",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "different dash positions",
-				String:         "4-zwg-ae0-7x2-400-00-00",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "fishy ending",
-				String:         "1-zwga-e07x-2400-00a0",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "fishy ending #2",
-				String:         "4-zwga-e07x-24a0-0000",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "random failed before #1",
-				String:         "3-1sfc-xrn8-dqek-dqxt-9he2-f3rf-5nj8-29ya-zyj1-9wfj-fppx-maa6-x75g-5jnb-1azg-0000",
-				ExpectedResult: true,
-			},
-		}
-
-		for _, tt := range tests {
-			t.Run(tt.Name, func(t *testing.T) {
-				actualResult := IsWellFormattedBfh(tt.String)
-
-				assert.Equal(t, tt.ExpectedResult, actualResult)
-			})
-		}
-	})
-
-	t.Run("random success", func(t *testing.T) {
-		tests := []struct {
-			Name   string
-			Length int
-		}{
-			{
-				Name:   "37",
-				Length: 37,
-			},
-			{
-				Name:   "69",
-				Length: 69,
-			},
-			{
-				Name:   "120",
-				Length: 120,
-			},
-			{
-				Name:   "141",
-				Length: 141,
-			},
-		}
-
-		for _, tt := range tests {
-			t.Run(tt.Name, func(t *testing.T) {
-				b := make([]byte, tt.Length)
-
-				_, err := rand.Read(b)
-				require.NoError(t, err)
-
-				encoded, err := Encode(b)
-				require.NoError(t, err)
-
-				isValid := IsWellFormattedBfh(encoded)
-
-				assert.True(t, isValid, fmt.Sprintf("Failing value: %s", encoded))
-			})
-		}
-	})
-}
-
-func Test_IsAcceptable(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		tests := []struct {
-			Name           string
-			String         string
-			ExpectedResult bool
-		}{
-			{
-				Name:           "empty",
-				String:         "0-",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "0x7e",
-				String:         "4-fr00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "0xff",
-				String:         "4-zw00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "0xff",
-				String:         "4-zw00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "zeros",
-				String:         "0-0000-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "mod5 slice length of 0xff",
-				String:         "0-zzzz-zzzz",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "6 bytes long 0xff",
-				String:         "4-zzzz-zzzz-zw00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "4 bytes long 0xff",
-				String:         "1-zzzz-zzr0",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "somewhat random numbers",
-				String:         "4-zwga-e07x-2400-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "invalid empty",
-				String:         "a-",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "very empty",
-				String:         "",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "wrong length",
-				String:         "4-zwg",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "extra dash at the end",
-				String:         "4-zwga-e07x-2400-0000-",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "different dash positions",
-				String:         "4-zwg-ae0-7x2-400-00-00",
-				ExpectedResult: true,
-			},
-		}
-
-		for _, tt := range tests {
-			t.Run(tt.Name, func(t *testing.T) {
-				actualResult := IsAcceptableBfh(tt.String)
-
-				assert.Equal(t, tt.ExpectedResult, actualResult)
-			})
-		}
-	})
-
-	t.Run("random success", func(t *testing.T) {
-		tests := []struct {
-			Name   string
-			Length int
-		}{
-			{
-				Name:   "37",
-				Length: 37,
-			},
-			{
-				Name:   "69",
-				Length: 69,
-			},
-			{
-				Name:   "120",
-				Length: 120,
-			},
-			{
-				Name:   "141",
-				Length: 141,
-			},
-		}
-
-		for _, tt := range tests {
-			t.Run(tt.Name, func(t *testing.T) {
-				b := make([]byte, tt.Length)
-
-				_, err := rand.Read(b)
-				require.NoError(t, err)
-
-				encoded, err := Encode(b)
-				require.NoError(t, err)
-
-				isValid := IsAcceptableBfh(encoded)
-
-				assert.True(t, isValid, fmt.Sprintf("Failing value: %s", encoded))
-			})
-		}
-	})
-}
-
-func Test_IsStrictBfh(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		tests := []struct {
-			Name           string
-			String         string
-			ExpectedResult bool
+			ExpectedResult []byte
 		}{
 			{
 				Name:           "empty",
 				String:         "",
-				ExpectedResult: true,
+				ExpectedResult: []byte{},
 			},
 			{
 				Name:           "0x7e",
 				String:         "fr00-0000",
-				ExpectedResult: true,
+				ExpectedResult: []byte{126, 0, 0, 0, 0},
 			},
 			{
 				Name:           "0xff",
 				String:         "zw00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "0xff",
-				String:         "zw00-0000",
-				ExpectedResult: true,
+				ExpectedResult: []byte{255, 0, 0, 0, 0},
 			},
 			{
 				Name:           "zeros",
 				String:         "0000-0000",
-				ExpectedResult: true,
+				ExpectedResult: []byte{0, 0, 0, 0, 0},
 			},
 			{
-				Name:           "mod5 slice length of 0xff",
+				Name:           "5x 0xff",
 				String:         "zzzz-zzzz",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "6 bytes long 0xff",
-				String:         "zzzz-zzzz-zw00-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "4 bytes long 0xff",
-				String:         "zzzz-zzr0",
-				ExpectedResult: true,
+				ExpectedResult: []byte{255, 255, 255, 255, 255},
 			},
 			{
 				Name:           "somewhat random numbers",
 				String:         "zwga-e07x-2400-0000",
-				ExpectedResult: true,
-			},
-			{
-				Name:           "wrong length",
-				String:         "zwg",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "extra dash at the end",
-				String:         "zwga-e07x-2400-0000-",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "different dash positions",
-				String:         "zwg-ae0-7x2-400-00-00",
-				ExpectedResult: false,
-			},
-			{
-				Name:           "different dash positions",
-				String:         "zwgae07x24000000",
-				ExpectedResult: false,
+				ExpectedResult: []byte{255, 32, 167, 0, 253, 17, 0, 0, 0, 0},
 			},
 		}
 
 		for _, tt := range tests {
 			t.Run(tt.Name, func(t *testing.T) {
-				actualResult := IsStrictBfh(tt.String)
+				actualResult, err := DecodeStrict(tt.String)
 
+				require.NoError(t, err)
 				assert.Equal(t, tt.ExpectedResult, actualResult)
+			})
+		}
+	})
+
+	t.Run("fail", func(t *testing.T) {
+		tests := []struct {
+			Name           string
+			String         string
+		}{
+			{
+				Name:           "invalid character",
+				String:         "ouga-e07x-2400-0000",
+			},
+			{
+				Name:           "fail wrong length",
+				String:         "zwga-e0",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				_, err := DecodeStrict(tt.String)
+
+				assert.Error(t, err, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
+	t.Run("random success", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			Length int
+		}{
+			{
+				Name:   "40",
+				Length: 40,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				b := make([]byte, tt.Length)
+
+				_, err := rand.Read(b)
+				require.NoError(t, err)
+
+				encoded, err := EncodeStrict(b)
+				require.NoError(t, err)
+
+				decoded, err := DecodeStrict(encoded)
+				require.NoError(t, err)
+
+				assert.Equal(t, b, decoded)
+			})
+		}
+	})
+}
+
+// nolint: gocyclo
+func Test_IsWellFormatted(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			String string
+		}{
+			{
+				Name:   "empty",
+				String: "0-",
+			},
+			{
+				Name:   "0x7e",
+				String: "4-fr00-0000",
+			},
+			{
+				Name:   "0xff",
+				String: "4-zw00-0000",
+			},
+			{
+				Name:   "0xff",
+				String: "4-zw00-0000",
+			},
+			{
+				Name:   "zeros",
+				String: "0-0000-0000",
+			},
+			{
+				Name:   "mod5 slice length of 0xff",
+				String: "0-zzzz-zzzz",
+			},
+			{
+				Name:   "6 bytes long 0xff",
+				String: "4-zzzz-zzzz-zw00-0000",
+			},
+			{
+				Name:   "4 bytes long 0xff",
+				String: "1-zzzz-zzr0",
+			},
+			{
+				Name:   "somewhat random numbers",
+				String: "4-zwga-e07x-2400-0000",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				actualResult := IsWellFormatted(tt.String)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
+	t.Run("fail", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			String string
+		}{
+			{
+				Name:   "invalid empty",
+				String: "a-",
+			},
+			{
+				Name:   "invalid empty 2",
+				String: "",
+			},
+			{
+				Name:   "wrong length",
+				String: "4-zwg",
+			},
+			{
+				Name:   "extra dash at the end",
+				String: "4-zwga-e07x-2400-0000-",
+			},
+			{
+				Name:   "different dash positions",
+				String: "4-zwg-ae0-7x2-400-00-00",
+			},
+			{
+				Name:   "wrong padding 1",
+				String: "1-zwga-e07x-2400-000z",
+			},
+			{
+				Name:   "wrong padding 2",
+				String: "2-zwga-e07x-2400-000z",
+			},
+			{
+				Name:   "wrong padding 3",
+				String: "3-zwga-e07x-2400-000z",
+			},
+			{
+				Name:   "wrong padding #4",
+				String: "4-zwga-e07x-2400-000z",
+			},
+			{
+				Name:   "wrong ending 1",
+				String: "1-zwga-e07x-2400-00z0",
+			},
+			{
+				Name:   "wrong padding 2",
+				String: "2-zwga-e07x-2400-z000",
+			},
+			{
+				Name:   "wrong padding 3",
+				String: "3-zwga-e07x-240z-0000",
+			},
+			{
+				Name:   "wrong padding #4",
+				String: "4-zwga-e07x-2z00-0000",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				actualResult := IsWellFormatted(tt.String)
+
+				assert.False(t, actualResult, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
+	t.Run("random success", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			Length int
+		}{
+			{
+				Name:   "37",
+				Length: 37,
+			},
+			{
+				Name:   "69",
+				Length: 69,
+			},
+			{
+				Name:   "120",
+				Length: 120,
+			},
+			{
+				Name:   "141",
+				Length: 141,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				b := make([]byte, tt.Length)
+
+				_, err := rand.Read(b)
+				require.NoError(t, err)
+
+				encoded, err := Encode(b)
+				require.NoError(t, err)
+
+				isValid := IsWellFormatted(encoded)
+
+				assert.True(t, isValid, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+
+	t.Run("success padding check #1", func(t *testing.T) {
+		type T struct {
+			Name    string
+			Content []byte
+		}
+		tests := []T{}
+
+		for i := 0; i <= 255; i++ {
+			tests = append(tests, T{Name: fmt.Sprintf("#%d", i), Content: []byte{255, 255, 255, uint8(i)}})
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				encoded, err := Encode(tt.Content)
+				require.NoError(t, err)
+
+				actualResult := IsWellFormatted(encoded)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+
+	t.Run("success padding check #2", func(t *testing.T) {
+		type T struct {
+			Name    string
+			Content []byte
+		}
+		tests := []T{}
+
+		for i := 0; i <= 255; i++ {
+			tests = append(tests, T{Name: fmt.Sprintf("#%d", i), Content: []byte{255, 255, uint8(i)}})
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				encoded, err := Encode(tt.Content)
+				require.NoError(t, err)
+
+				actualResult := IsWellFormatted(encoded)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+
+	t.Run("success padding check #3", func(t *testing.T) {
+		type T struct {
+			Name    string
+			Content []byte
+		}
+		tests := []T{}
+
+		for i := 0; i <= 255; i++ {
+			tests = append(tests, T{Name: fmt.Sprintf("#%d", i), Content: []byte{255, uint8(i)}})
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				encoded, err := Encode(tt.Content)
+				require.NoError(t, err)
+
+				actualResult := IsWellFormatted(encoded)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+
+	t.Run("success padding check #4", func(t *testing.T) {
+		type T struct {
+			Name    string
+			Content []byte
+		}
+		tests := []T{}
+
+		for i := 0; i <= 255; i++ {
+			tests = append(tests, T{Name: fmt.Sprintf("#%d", i), Content: []byte{uint8(i)}})
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				encoded, err := Encode(tt.Content)
+				require.NoError(t, err)
+
+				actualResult := IsWellFormatted(encoded)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+}
+
+// nolint: gocyclo
+func Test_IsAcceptable(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			String string
+		}{
+			{
+				Name:   "empty",
+				String: "0-",
+			},
+			{
+				Name:   "0x7e",
+				String: "4-fr00-0000",
+			},
+			{
+				Name:   "0xff",
+				String: "4-zw00-0000",
+			},
+			{
+				Name:   "0xff",
+				String: "4-zw00-0000",
+			},
+			{
+				Name:   "zeros",
+				String: "0-0000-0000",
+			},
+			{
+				Name:   "mod5 slice length of 0xff",
+				String: "0-zzzz-zzzz",
+			},
+			{
+				Name:   "6 bytes long 0xff",
+				String: "4-zzzz-zzzz-zw00-0000",
+			},
+			{
+				Name:   "4 bytes long 0xff",
+				String: "1-zzzz-zzr0",
+			},
+			{
+				Name:   "somewhat random numbers",
+				String: "4-zwga-e07x-2400-0000",
+			},
+			{
+				Name:   "extra dash at the end",
+				String: "4-zwga-e07x-2400-0000-",
+			},
+			{
+				Name:   "different dash positions",
+				String: "4-zwg-ae0-7x2-400-00-00",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				actualResult := IsAcceptable(tt.String)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
+	t.Run("fail", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			String string
+		}{
+			{
+				Name:   "invalid padding",
+				String: "a-",
+			},
+			{
+				Name:   "very empty",
+				String: "",
+			},
+			{
+				Name:   "wrong length",
+				String: "4-zwg",
+			},
+			{
+				Name:   "invalid padding length",
+				String: "4-zwg",
+			},
+			{
+				Name:   "invalid character",
+				String: "4-owg0",
+			},
+			{
+				Name:   "wrong padding 1",
+				String: "1-zwga-e07x-2400-000z",
+			},
+			{
+				Name:   "wrong padding 2",
+				String: "2-zwga-e07x-2400-000z",
+			},
+			{
+				Name:   "wrong padding 3",
+				String: "3-zwga-e07x-2400-000z",
+			},
+			{
+				Name:   "wrong padding #4",
+				String: "4-zwga-e07x-2400-000z",
+			},
+			{
+				Name:   "wrong ending 1",
+				String: "1-zwga-e07x-2400-00z0",
+			},
+			{
+				Name:   "wrong padding 2",
+				String: "2-zwga-e07x-2400-z000",
+			},
+			{
+				Name:   "wrong padding 3",
+				String: "3-zwga-e07x-240z-0000",
+			},
+			{
+				Name:   "wrong padding #4",
+				String: "4-zwga-e07x-2z00-0000",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				actualResult := IsAcceptable(tt.String)
+
+				assert.False(t, actualResult, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
+	t.Run("random success", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			Length int
+		}{
+			{
+				Name:   "37",
+				Length: 37,
+			},
+			{
+				Name:   "69",
+				Length: 69,
+			},
+			{
+				Name:   "120",
+				Length: 120,
+			},
+			{
+				Name:   "141",
+				Length: 141,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				b := make([]byte, tt.Length)
+
+				_, err := rand.Read(b)
+				require.NoError(t, err)
+
+				encoded, err := Encode(b)
+				require.NoError(t, err)
+
+				isValid := IsAcceptable(encoded)
+
+				assert.True(t, isValid, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+
+	t.Run("success padding check #1", func(t *testing.T) {
+		type T struct {
+			Name    string
+			Content []byte
+		}
+		tests := []T{}
+
+		for i := 0; i <= 255; i++ {
+			tests = append(tests, T{Name: fmt.Sprintf("#%d", i), Content: []byte{255, 255, 255, uint8(i)}})
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				encoded, err := Encode(tt.Content)
+				require.NoError(t, err)
+
+				actualResult := IsAcceptable(encoded)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+
+	t.Run("success padding check #2", func(t *testing.T) {
+		type T struct {
+			Name    string
+			Content []byte
+		}
+		tests := []T{}
+
+		for i := 0; i <= 255; i++ {
+			tests = append(tests, T{Name: fmt.Sprintf("#%d", i), Content: []byte{255, 255, uint8(i)}})
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				encoded, err := Encode(tt.Content)
+				require.NoError(t, err)
+
+				actualResult := IsAcceptable(encoded)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+
+	t.Run("success padding check #3", func(t *testing.T) {
+		type T struct {
+			Name    string
+			Content []byte
+		}
+		tests := []T{}
+
+		for i := 0; i <= 255; i++ {
+			tests = append(tests, T{Name: fmt.Sprintf("#%d", i), Content: []byte{255, uint8(i)}})
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				encoded, err := Encode(tt.Content)
+				require.NoError(t, err)
+
+				actualResult := IsAcceptable(encoded)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+
+	t.Run("success padding check #4", func(t *testing.T) {
+		type T struct {
+			Name    string
+			Content []byte
+		}
+		tests := []T{}
+
+		for i := 0; i <= 255; i++ {
+			tests = append(tests, T{Name: fmt.Sprintf("#%d", i), Content: []byte{uint8(i)}})
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				encoded, err := Encode(tt.Content)
+				require.NoError(t, err)
+
+				actualResult := IsAcceptable(encoded)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", encoded))
+			})
+		}
+	})
+}
+
+func Test_IsStrict(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		tests := []struct {
+			Name   string
+			String string
+		}{
+			{
+				Name:   "empty",
+				String: "",
+			},
+			{
+				Name:   "0x7e",
+				String: "fr00-0000",
+			},
+			{
+				Name:   "0xff",
+				String: "zw00-0000",
+			},
+			{
+				Name:   "0xff",
+				String: "zw00-0000",
+			},
+			{
+				Name:   "zeros",
+				String: "0000-0000",
+			},
+			{
+				Name:   "mod5 slice length of 0xff",
+				String: "zzzz-zzzz",
+			},
+			{
+				Name:   "6 bytes long 0xff",
+				String: "zzzz-zzzz-zw00-0000",
+			},
+			{
+				Name:   "4 bytes long 0xff",
+				String: "zzzz-zzr0",
+			},
+			{
+				Name:   "somewhat random numbers",
+				String: "zwga-e07x-2400-0000",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				actualResult := IsStrict(tt.String)
+
+				assert.True(t, actualResult, fmt.Sprintf("Failing value: %s", tt.String))
+			})
+		}
+	})
+
+	t.Run("fail", func(t *testing.T) {
+		tests := []struct {
+			Name           string
+			String         string
+			ExpectedResult bool
+		}{
+			{
+				Name:   "wrong length",
+				String: "zwg",
+			},
+			{
+				Name:   "extra dash at the end",
+				String: "zwga-e07x-2400-0000-",
+			},
+			{
+				Name:   "different dash positions",
+				String: "zwg-ae0-7x2-400-00-00",
+			},
+			{
+				Name:   "no separator where needed",
+				String: "zzzz0zzzz",
+			},
+			{
+				Name:   "invalid character",
+				String: "uuuu-zzzz",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.Name, func(t *testing.T) {
+				actualResult := IsStrict(tt.String)
+
+				assert.False(t, actualResult, fmt.Sprintf("Failing value: %s", tt.String))
 			})
 		}
 	})
@@ -716,7 +1095,7 @@ func Test_IsStrictBfh(t *testing.T) {
 				encoded, err := EncodeStrict(b)
 				require.NoError(t, err)
 
-				isValid := IsStrictBfh(encoded)
+				isValid := IsStrict(encoded)
 
 				assert.True(t, isValid, fmt.Sprintf("Failing value: %s", encoded))
 			})
@@ -849,7 +1228,7 @@ func Benchmark_IsWellFormattedBfh_238(b *testing.B) {
 	var validatedData bool
 
 	for n := 0; n < b.N; n++ {
-		validatedData = IsWellFormattedBfh(encodedData238)
+		validatedData = IsWellFormatted(encodedData238)
 	}
 
 	validatedResult = validatedData
@@ -859,7 +1238,7 @@ func Benchmark_IsAcceptableBfh_238(b *testing.B) {
 	var validatedData bool
 
 	for n := 0; n < b.N; n++ {
-		validatedData = IsAcceptableBfh(encodedData238)
+		validatedData = IsAcceptable(encodedData238)
 	}
 
 	validatedResult = validatedData
@@ -869,7 +1248,7 @@ func Benchmark_IsStrictBfh_240(b *testing.B) {
 	var validatedData bool
 
 	for n := 0; n < b.N; n++ {
-		validatedData = IsStrictBfh(encodedData240)
+		validatedData = IsStrict(encodedData240)
 	}
 
 	validatedResult = validatedData

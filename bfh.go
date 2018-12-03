@@ -22,7 +22,7 @@ var (
 	decodeMasks = []uint8{0x1, 0x3, 0x7, 0xf}
 )
 
-// nolint
+// nolint: gocyclo
 func getDigit(r uint8) (byte, error) {
 	switch r {
 	case '0':
@@ -283,7 +283,7 @@ func DecodeStrict(str string) ([]byte, error) {
 	// dashes are not needed, they only help readability
 	str = removeByte(str, separator)
 
-	if len(str)%4 != 0 {
+	if len(str)%8 != 0 {
 		return nil, errors.New(errMsgStrictInvalid)
 	}
 
@@ -327,8 +327,8 @@ func splitByte(charValue uint8, stringIndex int) (byte, byte) {
 	return charValue >> (mod - 3), charValue & decodeMasks[mod-4] << (11 - mod)
 }
 
-// IsWellFormattedBfh returns true if the string is a well-formatted string
-func IsWellFormattedBfh(str string) bool {
+// IsWellFormatted returns true if the string is a well-formatted string
+func IsWellFormatted(str string) bool {
 	if len(str) < 2 {
 		return false
 	}
@@ -338,17 +338,17 @@ func IsWellFormattedBfh(str string) bool {
 		return false
 	}
 
-	if !IsStrictBfh(str[2:]) {
+	if !IsStrict(str[2:]) {
 		return false
 	}
 
 	str = removeByte(str, separator)
 
-	return isPaddingCorrect(str)
+	return isValidEnding(len(str), str)
 }
 
-// IsAcceptableBfh returns true if bfh can accept it for decoding
-func IsAcceptableBfh(str string) bool {
+// IsAcceptable returns true if bfh can accept it for decoding
+func IsAcceptable(str string) bool {
 	fixedStr := removeByte(str, separator)
 
 	if len(str) == 0 {
@@ -364,7 +364,7 @@ func IsAcceptableBfh(str string) bool {
 		return false
 	}
 
-	return isPaddingCorrect(fixedStr)
+	return isValidEnding(len(fixedStr), fixedStr)
 }
 
 func validDigitsOnly(str string) bool {
@@ -378,74 +378,35 @@ func validDigitsOnly(str string) bool {
 	return true
 }
 
-func isPaddingCorrect(str string) bool {
-	l := len(str)
-
-	if l == 1 && str == "0" {
+func isValidEnding(length int, str string) bool {
+	if length == 1 && str == "0" {
 		return true
 	}
 
-	if l < 9 {
+	if length < 9 {
 		return false
 	}
 
 	switch str[0:1] {
 	case "1":
-		return isPaddingCorrect1(str)
+		return isValidEndingPadding1(length, str)
 	case "2":
-		return isPaddingCorrect2(str)
+		return isValidEndingPadding2(length, str)
 	case "3":
-		return isPaddingCorrect3(str)
+		return isValidEndingPadding3(length, str)
 	case "4":
-		return isPaddingCorrect4(str)
+		return isValidEndingPadding4(length, str)
 	}
 
 	return true
 }
 
-func isPaddingCorrect1(str string) bool {
-	l := len(str)
-
-	if str[l-1:] != "0" {
+func isValidEndingPadding1(length int, str string) bool {
+	if str[length-1:] != "0" {
 		return false
 	}
 
-	return isValidPaddingEnding1(str[l-2])
-}
-
-func isPaddingCorrect2(str string) bool {
-	l := len(str)
-
-	if str[l-2:] != "000" {
-		return false
-	}
-
-	return isValidPaddingEnding2(str[l-4])
-}
-
-func isPaddingCorrect3(str string) bool {
-	l := len(str)
-
-	if str[l-4:] != "0000" {
-		return false
-	}
-
-	return isValidPaddingEnding3(str[l-5])
-}
-
-func isPaddingCorrect4(str string) bool {
-	l := len(str)
-
-	if str[l-6:] != "000000" {
-		return false
-	}
-
-	return isValidPaddingEnding4(str[l-7])
-}
-
-// nolint
-func isValidPaddingEnding1(ending byte) bool {
-	switch ending {
+	switch str[length-2] {
 	case '0':
 		return true
 	case '8':
@@ -459,9 +420,13 @@ func isValidPaddingEnding1(ending byte) bool {
 	return false
 }
 
-// nolint
-func isValidPaddingEnding2(ending byte) bool {
-	switch ending {
+// nolint: gocyclo
+func isValidEndingPadding2(length int, str string) bool {
+	if str[length-3:] != "000" {
+		return false
+	}
+
+	switch str[length-4] {
 	case '0':
 		return true
 	case '2':
@@ -499,14 +464,20 @@ func isValidPaddingEnding2(ending byte) bool {
 	return false
 }
 
-// nolint
-func isValidPaddingEnding3(ending byte) bool {
-	return ending == '0' || ending == 'g'
+func isValidEndingPadding3(length int, str string) bool {
+	if str[length-4:] != "0000" {
+		return false
+	}
+
+	return str[length-5] == '0' || str[length-5] == 'g'
 }
 
-// nolint
-func isValidPaddingEnding4(ending byte) bool {
-	switch ending {
+func isValidEndingPadding4(length int, str string) bool {
+	if str[length-6:] != "000000" {
+		return false
+	}
+
+	switch str[length-7] {
 	case '0':
 		return true
 	case '4':
@@ -528,16 +499,14 @@ func isValidPaddingEnding4(ending byte) bool {
 	return false
 }
 
-// IsStrictBfh returns true if the string is strict-compatible
-func IsStrictBfh(str string) bool {
+// IsStrict returns true if the string is strict-compatible
+func IsStrict(str string) bool {
 	if len(str) > 0 && len(str)%5 != 4 {
 		return false
 	}
 
 	for i := 0; i < len(str); i++ {
-		fifth := (i%5 == 4)
-
-		if fifth {
+		if i%5 == 4 {
 			if str[i] != separator {
 				return false
 			}
