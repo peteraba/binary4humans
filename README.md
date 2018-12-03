@@ -26,7 +26,7 @@ bits of useful data and each will be displayed in two 4-character long subpacket
 If the length of the binary data is not dividable by 5 then it will be padded by zeros so that it will become
 dividable. The number of zero bytes added to the data will become the first character of the encoded string.
 
-As an alternatively you can also rely on `encodeStrict` and `decodeStrict` which can only be used with binary data of
+As an alternative, you can also rely on `encodeStrict` and `decodeStrict` which can only be used with binary data of
 length dividable by 5 but then the padding is no longer used.
 
 Dashes are generated automatically during encoding, but ignored completely during decoding.
